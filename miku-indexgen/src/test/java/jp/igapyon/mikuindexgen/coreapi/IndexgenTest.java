@@ -140,6 +140,33 @@ class IndexgenTest {
         assertFalse(result.generatedPaths.isEmpty());
     }
 
+    @Test
+    void createIndexesSortsFilePathsUsingJapaneseLocaleOrder() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+
+        Files.createDirectories(docsDir);
+        Files.write(docsDir.resolve("b.md"), "# B\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("a.md"), "# A\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("い.md"), "# Hiragana I\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("あ.md"), "# Hiragana\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = defaultOptions(docsDir);
+        IndexgenResult result = new Indexgen().createIndexes(options);
+
+        java.text.Collator collator = java.text.Collator.getInstance(java.util.Locale.JAPANESE);
+        java.util.ArrayList<String> expected = new java.util.ArrayList<String>(
+                Arrays.asList("b.md", "a.md", "い.md", "あ.md"));
+        java.util.Collections.sort(expected, new java.util.Comparator<String>() {
+            @Override
+            public int compare(String left, String right) {
+                int result = collator.compare(left, right);
+                return result != 0 ? result : left.compareTo(right);
+            }
+        });
+
+        assertEquals(expected, paths(result.files));
+    }
+
     private IndexgenOptions defaultOptions(Path docsDir) {
         IndexgenOptions options = new IndexgenOptions();
         options.targetDir = docsDir.toString();

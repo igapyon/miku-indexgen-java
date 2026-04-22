@@ -69,9 +69,9 @@ diff summary:
   behavior diff:
     - No known intentional behavior difference in the covered indexer cases.
   naming diff:
-    - Java core API uses IndexgenOptions / IndexgenResult so CLI and future Maven plugin can share the same contract.
+    - Java core API uses IndexgenOptions / IndexgenResult so CLI and Maven plugin can share the same contract.
   unmigrated diff:
-    - Maven plugin goal remains pending.
+    - No known unmigrated diff in the covered CLI / plugin adapter contract.
   Java-side extension:
     - IndexgenResult returns generated paths, skipped path, logs, and timings for adapter layers.
 

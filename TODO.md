@@ -6,7 +6,7 @@
 - Primary usage should be explicit execution:
 
 ```bash
-mvn miku-indexgen:index
+mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 ```
 
 - Do not bind the goal to a lifecycle phase by default.
@@ -16,4 +16,4 @@ mvn miku-indexgen:index
 - Note: full-coordinate execution works without plugin prefix setup: `mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index`.
 - Note: short execution `mvn miku-indexgen:index` requires Maven plugin prefix resolution for the `jp.igapyon` plugin group.
 - Use `workplace/tmp` for future manual smoke inputs and generated outputs where practical.
-- If the Maven plugin execution path works well for this repository, consider updating `docs/miku-straight-conversion-guide.md` so future miku Java ports can evaluate Maven plugin goals as an optional first-class runtime path.
+- Done: update `docs/miku-straight-conversion-guide.md` so future miku Java ports can treat Maven plugin goals as a high-priority first-class execution path for CLI / batch style tools.
