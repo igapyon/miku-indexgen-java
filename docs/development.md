@@ -5,7 +5,7 @@
 ```bash
 mvn test
 mvn package
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index -Dmiku-indexgen.targetDir=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.targetDir=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true
 ```
 
 ## Local Temporary Work
