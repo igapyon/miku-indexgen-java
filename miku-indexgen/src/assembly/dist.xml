@@ -13,11 +13,11 @@
       <destName>miku-indexgen.jar</destName>
     </file>
     <file>
-      <source>README.md</source>
+      <source>../README.md</source>
       <outputDirectory>/</outputDirectory>
     </file>
     <file>
-      <source>LICENSE</source>
+      <source>../LICENSE</source>
       <outputDirectory>/</outputDirectory>
     </file>
   </files>

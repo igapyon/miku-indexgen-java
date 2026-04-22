@@ -69,10 +69,11 @@ upstream file:
 java classes:
   jp.igapyon.mikuindexgen.cli.MikuIndexgenCli
   jp.igapyon.mikuindexgen.cli.HelpRequestedException
+  jp.igapyon.mikuindexgen.coreapi.IndexgenOptions
 
 notes:
   - Initial conversion covers parseArgs, parseIncludeExtensions, and printHelp.
-  - Runtime index generation command is not implemented yet.
+  - CLI converts parsed arguments into core IndexgenOptions.
 ```
 
 ```text
@@ -80,10 +81,27 @@ upstream file:
   workplace/miku-indexgen/src/indexer.ts
 
 java classes:
-  pending
+  jp.igapyon.mikuindexgen.coreapi.Indexgen
+  jp.igapyon.mikuindexgen.coreapi.IndexgenOptions
+  jp.igapyon.mikuindexgen.coreapi.IndexgenResult
+  jp.igapyon.mikuindexgen.coreapi.IndexgenTimings
 
 notes:
-  - Next core implementation target.
+  - Core API is intentionally independent of CLI argv parsing.
+  - Maven plugin can call Indexgen.createIndexes(IndexgenOptions).
+```
+
+```text
+upstream file:
+  Java-side Maven integration
+
+java classes:
+  jp.igapyon.mikuindexgen.mavenplugin.MikuIndexgenMojo
+
+notes:
+  - Java-side extension.
+  - Provides Maven plugin goal `index`.
+  - Calls Indexgen.createIndexes(IndexgenOptions).
 ```
 
 ```text
@@ -91,10 +109,11 @@ upstream file:
   workplace/miku-indexgen/src/logging.ts
 
 java classes:
-  pending
+  jp.igapyon.mikuindexgen.logging.Logging
+  jp.igapyon.mikuindexgen.logging.VerboseLogger
 
 notes:
-  - To be implemented with indexer runtime behavior.
+  - Verbose logs are accumulated in IndexgenResult for CLI / Maven plugin adapters.
 ```
 
 ```text
@@ -106,5 +125,5 @@ java classes:
 
 notes:
   - CLI main entrypoint exists.
-  - Public facade exports are not complete yet.
+  - Public facade exports are represented by focused Java classes rather than a single export file.
 ```

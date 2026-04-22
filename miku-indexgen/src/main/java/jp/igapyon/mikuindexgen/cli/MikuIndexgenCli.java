@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import jp.igapyon.mikuindexgen.coreapi.Indexgen;
+import jp.igapyon.mikuindexgen.coreapi.IndexgenOptions;
+import jp.igapyon.mikuindexgen.coreapi.IndexgenResult;
 import jp.igapyon.mikuindexgen.encoding.Encoding;
 import jp.igapyon.mikuindexgen.jsonsummary.JsonSummary;
 import jp.igapyon.mikuindexgen.model.CliOptions;
@@ -22,13 +25,24 @@ public class MikuIndexgenCli {
 
     public int run(String[] args, PrintStream out, PrintStream err) {
         try {
-            parseArgs(args);
-            err.println("error: index generation is not implemented yet.");
-            return 1;
+            CliOptions cliOptions = parseArgs(args);
+            IndexgenResult result = new Indexgen().createIndexes(IndexgenOptions.fromCliOptions(cliOptions));
+            for (String log : result.logs) {
+                out.println(log);
+            }
+            if (result.skipped()) {
+                out.println("skip: " + result.skippedOutputPath);
+            } else {
+                for (java.nio.file.Path generatedPath : result.generatedPaths) {
+                    out.println("generated: " + generatedPath);
+                }
+            }
+            out.println("completed: " + result.subdirectories + " subdirectories processed");
+            return 0;
         } catch (HelpRequestedException ex) {
             printHelp(out);
             return 0;
-        } catch (RuntimeException ex) {
+        } catch (Exception ex) {
             err.println("error: " + ex.getMessage());
             printHelp(err);
             return 1;

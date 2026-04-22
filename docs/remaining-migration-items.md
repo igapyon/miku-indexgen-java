@@ -16,21 +16,25 @@ Implemented initial units:
 - `path-utils.ts` helpers
 - `encoding.ts` encoding option helpers
 - `cli.ts` argument parsing and help handling
+- `indexer.ts` core index generation
+- `logging.ts` verbose log accumulation
+- core-side `IndexgenOptions` / `IndexgenResult` for future Maven plugin integration
+- multi-module Maven structure
+- `miku-indexgen` runtime jar module
+- `miku-indexgen-maven-plugin` Maven plugin module
+- Maven plugin `index` goal
 
 ## Pending
 
-- `indexer.ts` Java conversion
-- `logging.ts` Java conversion
-- full CLI runtime index generation
-- JSON output generation and deterministic ordering tests
-- Markdown output file generation tests
-- overwrite / recursive / include extension behavior tests
-- verbose diagnostics tests
-- package smoke test
+- Maven plugin usage docs
+- Maven plugin integration tests
+- short prefix execution documentation for `mvn miku-indexgen:index`
+- evaluate whether Maven plugin findings should update `docs/miku-straight-conversion-guide.md`
 
 ## Focused Regression
 
 - `mvn test`
+- `mvn test -Dtest=IndexgenTest`
 - `mvn test -Dtest=MarkdownTest`
 - `mvn test -Dtest=JsonSummaryTest`
 - `mvn test -Dtest=PathUtilsTest`
@@ -46,5 +50,38 @@ Implemented initial units:
   - Skipped: 0
 - `2026-04-22`: `mvn package`
   - Build success
-  - Produced `target/miku-indexgen.jar`
-  - Produced `target/miku-indexgen-dist.zip`
+  - Produced `miku-indexgen/target/miku-indexgen.jar`
+  - Produced `miku-indexgen/target/miku-indexgen-dist.zip`
+- `2026-04-22`: `mvn test`
+  - Tests run: 30
+  - Failures: 0
+  - Errors: 0
+  - Skipped: 0
+- `2026-04-22`: `mvn package`
+  - Build success
+  - Produced `miku-indexgen/target/miku-indexgen.jar`
+  - Produced `miku-indexgen/target/miku-indexgen-dist.zip`
+- `2026-04-22`: `java -jar miku-indexgen/target/miku-indexgen.jar /tmp/miku-indexgen-smoke --markdown`
+  - Exit code: 0
+  - Produced `index.json`
+  - Produced `index.md`
+- `2026-04-22`: `mvn test`
+  - Reactor build success
+  - Runtime tests run: 30
+  - Maven plugin tests run: 2
+- `2026-04-22`: `mvn package`
+  - Reactor build success
+  - Produced `miku-indexgen/target/miku-indexgen.jar`
+  - Produced `miku-indexgen/target/miku-indexgen-dist.zip`
+  - Produced `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-0.1.0-SNAPSHOT.jar`
+- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index -Dmiku-indexgen.targetDir=/tmp/miku-indexgen-plugin-smoke -Dmiku-indexgen.markdown=true`
+  - Build success
+  - Produced `index.json`
+  - Produced `index.md`
+- `2026-04-22`: `mvn miku-indexgen:index -N -Dmiku-indexgen.targetDir=/tmp/miku-indexgen-plugin-smoke -Dmiku-indexgen.markdown=true`
+  - Failed because Maven plugin prefix resolution did not include the `jp.igapyon` plugin group
+  - Full-coordinate execution remains the confirmed path
+- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index -Dmiku-indexgen.targetDir=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true`
+  - Build success
+  - Produced `workplace/tmp/plugin-smoke/index.json`
+  - Produced `workplace/tmp/plugin-smoke/index.md`

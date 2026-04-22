@@ -80,11 +80,25 @@ upstream test / intent:
   test/indexer-verbose.test.ts
 
 java tests:
-  pending
+  jp.igapyon.mikuindexgen.coreapi.IndexgenTest
 
 fixtures:
-  pending
+  temporary files from JUnit TempDir
 
 focused regression:
-  pending
+  mvn test -Dtest=IndexgenTest
+```
+
+```text
+upstream test / intent:
+  Java-side Maven plugin integration
+
+java tests:
+  jp.igapyon.mikuindexgen.mavenplugin.MikuIndexgenMojoTest
+
+fixtures:
+  temporary files from JUnit TempDir
+
+focused regression:
+  mvn test -Dtest=MikuIndexgenMojoTest
 ```

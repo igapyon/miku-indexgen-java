@@ -16,6 +16,7 @@ The first conversion scope is focused on:
 - JSON summary extraction
 - path and encoding helpers
 - CLI argument and runtime entrypoint
+- Maven plugin ready core API
 - single fat jar packaging
 
 ## Upstream Policy
@@ -40,11 +41,46 @@ mvn package
 
 The distributable runtime artifact is a single fat jar:
 
-- `target/miku-indexgen.jar`
+- `miku-indexgen/target/miku-indexgen.jar`
 
 `mvn package` also produces:
 
-- `target/miku-indexgen-dist.zip`
+- `miku-indexgen/target/miku-indexgen-dist.zip`
+
+## Core API Direction
+
+The Java implementation keeps index generation behind `Indexgen.createIndexes(IndexgenOptions)`.
+The CLI converts command-line arguments into `IndexgenOptions` and calls the same core API that a future Maven plugin goal should use.
+
+## Maven Plugin
+
+The Maven plugin is provided as a separate module:
+
+- `miku-indexgen-maven-plugin`
+
+Explicit execution with full coordinates:
+
+```bash
+mvn jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index
+```
+
+Example:
+
+```bash
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index \
+  -Dmiku-indexgen.targetDir=docs \
+  -Dmiku-indexgen.markdown=true
+```
+
+The intended Maven plugin direction remains explicit execution first. The short form is:
+
+```bash
+mvn miku-indexgen:index
+```
+
+The short form requires Maven plugin prefix resolution for the `jp.igapyon` plugin group, such as a user or project Maven settings configuration.
+
+Users who need automatic generation can opt in by binding that goal to a lifecycle phase such as `generate-resources`.
 
 ## Development Docs
 
