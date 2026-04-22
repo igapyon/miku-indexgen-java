@@ -504,7 +504,8 @@ model class は `ProjectModel`, `TaskModel`, `ResourceModel`, `AssignmentModel`,
 個々の文の強さは、`固定する`, `基本`, `許容する`, `例` などの表現に従って読む。
 
 - Maven coordinate は `groupId = jp.igapyon`, `artifactId = <project>` を基本にする
-- single fat jar の成果物名は利用者が覚えやすい `<project>.jar` に寄せ、version 番号はファイル名に含めない
+- single fat jar, Maven plugin jar, distribution zip の成果物名は Maven 座標と追跡しやすい `artifactId-version` 系へ揃える
+- distribution zip 内へ入れる runtime jar 名も、配布ファイル名と同じく version 付きへ揃える
 - CLI main class は `jp.igapyon.<project>.cli.<Project>Cli` に置く
 - CLI は `main(String[] args)` に実処理を詰め込まず、`run(String[] args, PrintStream out, PrintStream err)` のような test 可能な入口へ委譲する
 - `System.exit` は原則として CLI main の最後だけに閉じ込め、core API や CLI 実処理からは exit code を返す
@@ -591,12 +592,64 @@ Java 版は upstream 全体をそのまま持ち込むことを目的にして�
 
 - `CoreApi*` のような公開入口の整理
 - Java CLI entrypoint
+- Maven plugin goal を追加するための Java 側 wrapper module
 - AI 向け prompt markdown を取得する API / CLI entrypoint
 - single fat jar packaging
 - 処理対象に応じた distribution zip packaging
 - batch command など、Java 側運用のための補助導線
 
 これらは upstream 本体と同一責務として混ぜず、`Java 側独自拡張` として区別して扱う。
+
+また、CLI runtime に加えて Maven plugin のような Java 側 execution path は、CLI / batch 変換系では優先度の高い first-class 導線として検討してよい。
+特に、成果物生成、検証、変換、index 作成のように build process へ自然に載せやすいツールでは、Maven plugin 対応を積極的に検討する価値が高い。
+
+その場合、repo 構成を multi-module Maven reactor にしてよい。
+
+- repo root は aggregator parent `pom`
+- aggregator root には原則として `src/main/java` や `src/test/java` を置かない
+- runtime jar 実装は `<repo>/<runtime-module>/src/...`
+- Maven plugin 実装は `<repo>/<plugin-module>/src/...`
+- shared core contract は runtime module または core module へ寄せ、plugin module へ逆流させない
+
+このとき、Java source が repo root 直下より 1 段深くなること自体は問題ではない。
+重要なのは、multi-module 化の理由が `Java 側独自拡張の分離` と `shared core API の再利用` で説明できること、そして README / mapping / regression docs がその構成を前提に追随していることである。
+
+## Maven plugin を追加する場合の命名
+
+Maven plugin を Java 側独自拡張として追加する場合は、artifact 名、prefix、goal 名を最初に揃える。
+ここは Maven 固有の流儀があり、後から直すと利用者向け command や README の修正範囲が広がりやすい。
+
+基本方針:
+
+- `groupId` は通常どおり逆ドメイン形式を使う
+- plugin artifactId は第三者 plugin の慣例として `${prefix}-maven-plugin` を優先する
+- `maven-${prefix}-plugin` 形式は Apache Maven 公式 plugin 系の慣例なので、通常の miku Java 版では選ばない
+- short form で使いたい command prefix は artifactId と対応する名前へ揃える
+- 必要なら `maven-plugin-plugin` の `goalPrefix` で prefix を明示する
+- goal 名は短く、処理内容が分かる名前にする
+- plugin version は利用側 `pom.xml` で明示する前提で扱う
+
+たとえば artifactId が `miku-indexgen-maven-plugin` なら、prefix は `miku-indexgen`、goal が `index` なら short form は `mvn miku-indexgen:index` になる。
+
+ただし、artifactId と `goalPrefix` が正しくても、short form が常に解決されるとは限らない。
+利用側の Maven がその plugin group を prefix 解決対象として検索できない場合、full coordinate 指定のほうが確実である。
+特に third-party plugin では、利用側 `settings.xml` や project 設定に plugin group が入っていないと `mvn ${prefix}:${goal}` は失敗しうる。
+そのため、README や development docs では `full coordinate で確実に通る実行例` と `short form が通る前提条件` を分けて記述する。
+
+parameter 命名も early stage で固定したほうがよい。
+
+- plugin parameter 名は upstream CLI option や core options object の語彙に寄せる
+- Maven 側だからといって意味語彙を別名へ置き換えすぎない
+- list / collection parameter は XML 要素名と Java field 名の対応を説明できる形にする
+- plugin parameter の default と README / plugin help / core defaults の記述を揃える
+
+知見:
+
+- plugin naming は単なる見た目ではなく、prefix 解決と利用者向け command に直結する
+- `artifactId`, `goalPrefix`, `goal` がずれると、README と実行方法の説明が分かりにくくなりやすい
+- short form の成否は naming だけでなく plugin group 解決設定にも依存する
+- parameter 名を CLI と Maven plugin で別語彙にすると、README, help, test, adapter 実装の同期コストが増えやすい
+- straight conversion の主対象が CLI / batch / report 系で、build process へ自然に載るなら、plugin 命名まで含めて早めに固定したほうがよい
 
 ## CLI の扱い
 
@@ -613,6 +666,7 @@ CLI を持つ upstream を Java へ移す場合、Java 側 CLI は Node 版 CLI 
 ただし、次は Java 側の運用都合として追加してよい。
 
 - batch command
+- Maven plugin goal
 - fat jar 実行に合わせた最小限の起動方法差
 - Java runtime / file API に合わせた補助 diagnostics
 
@@ -621,6 +675,7 @@ CLI を持つ upstream を Java へ移す場合、Java 側 CLI は Node 版 CLI 
 知見:
 
 - CLI 契約を最初に曖昧にすると、あとで help / README / test / diagnostics の同期コストが増えやすい
+- build process に自然に載る種類の CLI では、Maven plugin を用意しておくと Java 利用者向けの実用性が大きく上がりやすい
 - Java 側独自の batch command は便利だが、upstream straight conversion と混ぜると追随単位が崩れやすい
 - `core の契約` と `Java 側運用拡張` を分けて扱うほうが保守しやすい
 
@@ -763,8 +818,16 @@ straight conversion では、実装だけでなく追随運用も共通原則と
 - docs-only 更新とコード変更を運用上区別する
 - focused regression を用意し、変更単位に応じて実行できるようにする
 - upstream bug を見つけた場合の連絡事項の置き場を持つ
+- guide には共通原則と判断基準を残し、repo 固有の現状値、成果物名、実行例は README や development docs を正本にする
 
 特に docs-only 更新では、原則として追加テストを回さず、コード変更や回帰コマンド自体の更新時だけ対象単位を確認する、という運用は有効である。
+また、Maven plugin を導入した repo では、少なくとも次を最小確認セットとして残してよい。
+
+1. `mvn test`
+2. `mvn package`
+3. full-coordinate による Maven plugin smoke 実行
+
+short form smoke は plugin group 解決設定の影響を受けるため、常設の最小確認セットとは分けて扱ってよい。
 
 upstream bug を見つけた場合は、原則として次の順で扱う。
 

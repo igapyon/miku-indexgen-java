@@ -10,7 +10,7 @@
     <file>
       <source>${project.build.directory}/${project.build.finalName}.jar</source>
       <outputDirectory>/</outputDirectory>
-      <destName>miku-indexgen.jar</destName>
+      <destName>${project.artifactId}-${project.version}.jar</destName>
     </file>
     <file>
       <source>../README.md</source>

@@ -14,6 +14,40 @@ Use `workplace/tmp` for manual smoke inputs and generated outputs.
 
 `workplace/` contents other than `workplace/.gitkeep` are not tracked by Git, so this area is suitable for local verification artifacts.
 
+## Maven Plugin Configuration
+
+Maven plugin parameters can be passed through XML configuration in a consuming `pom.xml`.
+
+```xml
+<plugin>
+  <groupId>jp.igapyon</groupId>
+  <artifactId>miku-indexgen-maven-plugin</artifactId>
+  <version>1.0.0</version>
+  <configuration>
+    <targetDir>${project.basedir}/docs</targetDir>
+    <markdown>true</markdown>
+    <includeExtensions>
+      <includeExtension>md</includeExtension>
+      <includeExtension>json</includeExtension>
+    </includeExtensions>
+  </configuration>
+</plugin>
+```
+
+Automatic lifecycle execution should be opt-in.
+
+```xml
+<executions>
+  <execution>
+    <id>generate-docs-index</id>
+    <phase>generate-resources</phase>
+    <goals>
+      <goal>index</goal>
+    </goals>
+  </execution>
+</executions>
+```
+
 ## Focused Regression Commands
 
 ```bash
