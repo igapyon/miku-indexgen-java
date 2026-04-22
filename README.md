@@ -61,13 +61,13 @@ The Maven plugin is provided as a separate module:
 Explicit execution with full coordinates:
 
 ```bash
-mvn jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index
+mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 ```
 
 Example:
 
 ```bash
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:0.1.0-SNAPSHOT:index \
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index \
   -Dmiku-indexgen.targetDir=docs \
   -Dmiku-indexgen.markdown=true
 ```
@@ -81,6 +81,10 @@ mvn miku-indexgen:index
 The short form requires Maven plugin prefix resolution for the `jp.igapyon` plugin group, such as a user or project Maven settings configuration.
 
 Users who need automatic generation can opt in by binding that goal to a lifecycle phase such as `generate-resources`.
+
+The plugin module package artifact is:
+
+- `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.0.0.jar`
 
 ## Development Docs
 
