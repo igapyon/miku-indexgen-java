@@ -41,7 +41,11 @@ public class MikuIndexgenCli {
                     out.println("generated: " + generatedPath);
                 }
             }
-            out.println("completed: " + result.subdirectories + " subdirectories processed");
+            if (hasValue(cliOptions.inputParentDirectory)) {
+                out.println("completed: " + result.childDirectoriesProcessed + " child directories processed");
+            } else {
+                out.println("completed: " + result.subdirectories + " subdirectories processed");
+            }
             return 0;
         } catch (HelpRequestedException ex) {
             printHelp(out);
@@ -103,6 +107,12 @@ public class MikuIndexgenCli {
 
             if ("--input-directory".equals(arg)) {
                 options.inputDirectory = readRequiredOptionValue(argv, i, "--input-directory", "an input directory");
+                i++;
+                continue;
+            }
+
+            if ("--input-parent-directory".equals(arg)) {
+                options.inputParentDirectory = readRequiredOptionValue(argv, i, "--input-parent-directory", "an input parent directory");
                 i++;
                 continue;
             }
@@ -171,20 +181,28 @@ public class MikuIndexgenCli {
             }
         }
 
-        if (options.inputDirectory == null || options.inputDirectory.length() == 0) {
-            throw new IllegalArgumentException("Please specify an input directory for --input-directory.");
+        if (hasValue(options.inputDirectory) && hasValue(options.inputParentDirectory)) {
+            throw new IllegalArgumentException("Specify either --input-directory or --input-parent-directory, not both.");
+        }
+        if (!hasValue(options.inputDirectory) && !hasValue(options.inputParentDirectory)) {
+            throw new IllegalArgumentException("Please specify --input-directory or --input-parent-directory.");
         }
         return options;
     }
 
     public static void printHelp(PrintStream out) {
         out.println("Usage:\n"
-                + "  miku-indexgen --input-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen (--input-directory <dir> | --input-parent-directory <dir>) [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
                 + "\n"
                 + "Description:\n"
-                + "  Generate a root JSON index that aggregates matching files found under\n"
-                + "  the input directory. Output files are written to the input directory by default.\n"
+                + "  Generate root JSON indexes for one input directory or for each direct child\n"
+                + "  directory under an input parent directory. Output files are written under\n"
+                + "  the selected output directory or input directory by default.\n"
                 + "  Supported encodings: utf8, shift_jis\n");
+    }
+
+    private static boolean hasValue(String value) {
+        return value != null && value.length() > 0;
     }
 
     private static String readRequiredOptionValue(String[] argv, int index, String optionName, String description) {

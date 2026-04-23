@@ -8,6 +8,7 @@ import jp.igapyon.mikuindexgen.model.IndexFile;
 
 public class IndexgenResult {
     public int subdirectories;
+    public int childDirectoriesProcessed;
     public List<IndexFile> files = new ArrayList<IndexFile>();
     public Path jsonPath;
     public Path markdownPath;

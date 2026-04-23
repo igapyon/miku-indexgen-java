@@ -33,8 +33,8 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 
 ### Core / Runtime Structure
 
-- TODO: keep the core API focused on single-item conversion semantics and move directory traversal / repeated execution into a runtime helper shared by CLI and Maven plugin.
-- TODO: if shared directory / batch behavior remains supported, place it in the runtime module or a core-adjacent runtime helper, not in the Maven plugin module.
+- Done: move directory traversal / repeated execution for child-directory batch handling into shared runtime-side code that is reused by CLI and Maven plugin.
+- Done: keep shared directory / batch behavior out of the Maven plugin body and reuse the same runtime-side implementation from both execution paths.
 - TODO: decide and document whether generated outputs may be written into the input directory by default, and only allow that when re-scanning of generated files is prevented by contract.
 
 ### CLI Tasks
@@ -42,16 +42,16 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 - TODO: introduce explicit Java-only naming for directory / batch execution so it is distinguishable from normal single-input commands or options.
 - TODO: add entry validation for conflicting option combinations in directory mode and keep those failures as usage errors, not warnings.
 - TODO: define `recursive` narrowly as "whether to recurse inside each selected base directory" and keep it separate from the question of how base directories are selected.
-- TODO: define a Java-only `child-directory-batch mode` contract for the case where a parent directory `A` is given and each direct child directory `B1`, `B2`, `B3` becomes an independent processing base directory.
-- TODO: in `child-directory-batch mode`, keep `A` itself out of the processing targets and treat only direct child directories as targets.
-- TODO: in `child-directory-batch mode`, skip hidden directories when discovering child base directories.
-- TODO: in `child-directory-batch mode`, once a child base directory is selected, apply the normal per-directory behavior from that child onward, including the usual `recursive` handling inside that child.
+- Done: implement Java-side `child-directory-batch mode` for the case where a parent directory `A` is given and each direct child directory `B1`, `B2`, `B3` becomes an independent processing base directory.
+- Done: in `child-directory-batch mode`, keep `A` itself out of the processing targets and treat only direct child directories as targets.
+- Done: in `child-directory-batch mode`, skip hidden directories when discovering child base directories.
+- Done: in `child-directory-batch mode`, once a child base directory is selected, apply the normal per-directory behavior from that child onward, including the usual `recursive` handling inside that child.
 - TODO: add or refine stderr-only verbose / progress diagnostics for long-running or multi-file CLI processing.
 - TODO: extend CLI regression tests so help text, usage text, stdout / stderr split, exit code, and directory-mode validation stay aligned.
 
 ### Maven Plugin Tasks
 
-- TODO: keep Maven plugin goals as thin adapters over the same runtime helper used by the CLI for directory / batch execution.
+- Done: keep Maven plugin goals as thin adapters over the same runtime helper used by the CLI for directory / batch execution.
 - TODO: if directory / batch parameters are added or renamed, keep Maven vocabulary aligned with CLI vocabulary such as `inputDirectory`, `outputDirectory`, and `recursive`.
 - TODO: reject plugin parameter combinations that do not make sense together, and describe the same restrictions in README.
 - TODO: decide whether the current `index` goal remains the directory-oriented Java extension goal or whether a thinner single-input goal should be introduced separately.
@@ -59,8 +59,8 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 
 ### Open Design Decisions
 
-- Done: for the initial `child-directory-batch mode` draft, assume current per-child output behavior and treat shared `outputDirectory` support as a later design topic.
-- TODO: continue design discussion for how to avoid output-name collisions between child directories if `child-directory-batch mode` later supports a shared destination.
+- Done: support per-child output behavior when `outputDirectory` is omitted and child-specific shared output paths when `outputDirectory` is specified.
+- Done: avoid output-name collisions in shared batch output by writing each child directory under its own child-specific output path.
 - Done: for the initial `child-directory-batch mode` draft, stop on the first child directory failure.
 - TODO: continue design discussion for any later aggregate-result mode in `child-directory-batch mode`, including exit-code and reporting semantics.
 

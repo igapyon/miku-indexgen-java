@@ -75,6 +75,20 @@ When `--output-directory` is omitted, outputs are written under `inputDirectory`
 When `--markdown` is specified, it also generates `index.md` in the same output directory.
 Verbose diagnostics go to `stderr`.
 
+Run child-directory batch mode from an input parent directory:
+
+```bash
+java -jar miku-indexgen/target/miku-indexgen-1.0.0.jar \
+  --input-parent-directory docs-parent \
+  --output-directory out \
+  --markdown \
+  --verbose
+```
+
+This treats each direct child directory under `docs-parent` as an independent input directory.
+When `--output-directory` is specified, each child directory writes under its own child path such as `out/<child>/index.json`.
+Hidden child directories and direct child files under the parent directory are skipped.
+
 ## Core API Direction
 
 The Java implementation keeps index generation behind `Indexgen.createIndexes(IndexgenOptions)`.
@@ -89,6 +103,7 @@ The Maven plugin is provided as a separate module:
 The plugin goal is:
 
 - `index`
+- `index-child-directories`
 
 The goal generates `index.json` under `outputDirectory` when specified.
 When `outputDirectory` is omitted, it writes under `inputDirectory`.
@@ -112,6 +127,15 @@ mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index \
 ```
 
 This style is useful for one-shot execution and smoke verification.
+
+Child-directory batch example:
+
+```bash
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index-child-directories \
+  -Dmiku-indexgen.inputParentDirectory=docs-parent \
+  -Dmiku-indexgen.outputDirectory=out \
+  -Dmiku-indexgen.markdown=true
+```
 
 ### POM Configuration
 
@@ -207,6 +231,9 @@ Lifecycle binding example:
 | `inputEncoding` | `utf8` | Input text encoding. Supported values are `utf8` and `shift_jis`. |
 | `outputEncoding` | `utf8` | Output text encoding. Supported values are `utf8` and `shift_jis`. |
 | `skip` | `false` | Skip plugin execution. |
+
+For `index-child-directories`, use `inputParentDirectory` instead of `inputDirectory`.
+When `outputDirectory` is specified for `index-child-directories`, outputs are written under child-specific directories such as `<outputDirectory>/<child>/index.json`.
 
 ### Prefix Resolution
 

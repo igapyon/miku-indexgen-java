@@ -7,6 +7,7 @@ import jp.igapyon.mikuindexgen.model.CliOptions;
 
 public class IndexgenOptions {
     public String inputDirectory;
+    public String inputParentDirectory;
     public String outputDirectory;
     public String title;
     public boolean markdownOutput;
@@ -28,6 +29,7 @@ public class IndexgenOptions {
     public static IndexgenOptions fromCliOptions(CliOptions cliOptions) {
         IndexgenOptions options = new IndexgenOptions();
         options.inputDirectory = cliOptions.inputDirectory;
+        options.inputParentDirectory = cliOptions.inputParentDirectory;
         options.outputDirectory = cliOptions.outputDirectory;
         options.title = cliOptions.title;
         options.markdownOutput = cliOptions.markdownOutput;
