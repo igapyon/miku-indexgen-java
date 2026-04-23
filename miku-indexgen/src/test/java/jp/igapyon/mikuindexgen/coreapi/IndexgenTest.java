@@ -169,7 +169,7 @@ class IndexgenTest {
 
     private IndexgenOptions defaultOptions(Path docsDir) {
         IndexgenOptions options = new IndexgenOptions();
-        options.targetDir = docsDir.toString();
+        options.inputDirectory = docsDir.toString();
         options.outputFileName = "index.json";
         options.markdownOutput = false;
         options.recursive = true;

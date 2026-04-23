@@ -58,6 +58,21 @@ The distributable runtime artifact is a single fat jar:
 
 - `miku-indexgen/target/miku-indexgen-dist-1.0.0.zip`
 
+## CLI
+
+Run the runtime jar with an explicit input directory:
+
+```bash
+java -jar miku-indexgen/target/miku-indexgen-1.0.0.jar \
+  --input-directory docs \
+  --markdown \
+  --verbose
+```
+
+This generates `index.json` under `inputDirectory`.
+When `--markdown` is specified, it also generates `index.md` under the same directory.
+Verbose diagnostics go to `stderr`.
+
 ## Core API Direction
 
 The Java implementation keeps index generation behind `Indexgen.createIndexes(IndexgenOptions)`.
@@ -73,7 +88,7 @@ The plugin goal is:
 
 - `index`
 
-The goal generates `index.json` under `targetDir`.
+The goal generates `index.json` under `inputDirectory`.
 When `markdown` is `true`, it also generates `index.md` under the same directory.
 
 ### Explicit Execution
@@ -88,7 +103,7 @@ Example:
 
 ```bash
 mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index \
-  -Dmiku-indexgen.targetDir=docs \
+  -Dmiku-indexgen.inputDirectory=docs \
   -Dmiku-indexgen.markdown=true
 ```
 
@@ -106,7 +121,7 @@ Minimal example:
   <artifactId>miku-indexgen-maven-plugin</artifactId>
   <version>1.0.0</version>
   <configuration>
-    <targetDir>${project.basedir}/docs</targetDir>
+    <inputDirectory>${project.basedir}/docs</inputDirectory>
     <markdown>true</markdown>
   </configuration>
 </plugin>
@@ -120,7 +135,7 @@ Fuller example:
   <artifactId>miku-indexgen-maven-plugin</artifactId>
   <version>1.0.0</version>
   <configuration>
-    <targetDir>${project.basedir}/docs</targetDir>
+    <inputDirectory>${project.basedir}/docs</inputDirectory>
     <outputFileName>index.json</outputFileName>
     <markdown>true</markdown>
     <recursive>true</recursive>
@@ -154,7 +169,7 @@ Lifecycle binding example:
   <artifactId>miku-indexgen-maven-plugin</artifactId>
   <version>1.0.0</version>
   <configuration>
-    <targetDir>${project.basedir}/docs</targetDir>
+    <inputDirectory>${project.basedir}/docs</inputDirectory>
     <markdown>true</markdown>
   </configuration>
   <executions>
@@ -173,15 +188,15 @@ Lifecycle binding example:
 
 | Parameter | Default | Description |
 | --- | --- | --- |
-| `targetDir` | `${project.basedir}` | Directory to scan. |
-| `outputFileName` | `index.json` | JSON output file name under `targetDir`. |
+| `inputDirectory` | `${project.basedir}` | Directory to scan. |
+| `outputFileName` | `index.json` | JSON output file name under `inputDirectory`. |
 | `title` | unset | Optional root-level title in generated JSON. |
 | `markdown` | `false` | Also generate `index.md`. |
 | `includeGeneratorMetadata` | `true` | Include root-level `generator` metadata. |
 | `jsonSummaryPaths` | unset | JSON Pointer list used to extract JSON summaries. |
 | `recursive` | `true` | Recurse into nested subdirectories. |
 | `overwrite` | `true` | Overwrite existing output files. |
-| `verbose` | `false` | Emit verbose progress and timing logs. |
+| `verbose` | `false` | Emit verbose progress and timing logs. In the CLI these diagnostics go to `stderr`. |
 | `includeExtensions` | `md`, `json` | File extensions to include. |
 | `inputEncoding` | `utf8` | Input text encoding. Supported values are `utf8` and `shift_jis`. |
 | `outputEncoding` | `utf8` | Output text encoding. Supported values are `utf8` and `shift_jis`. |

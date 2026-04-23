@@ -6,7 +6,7 @@ import java.util.List;
 import jp.igapyon.mikuindexgen.model.CliOptions;
 
 public class IndexgenOptions {
-    public String targetDir;
+    public String inputDirectory;
     public String outputFileName = "index.json";
     public String title;
     public boolean markdownOutput;
@@ -27,7 +27,7 @@ public class IndexgenOptions {
 
     public static IndexgenOptions fromCliOptions(CliOptions cliOptions) {
         IndexgenOptions options = new IndexgenOptions();
-        options.targetDir = cliOptions.targetDir;
+        options.inputDirectory = cliOptions.inputDirectory;
         options.outputFileName = cliOptions.outputFileName;
         options.title = cliOptions.title;
         options.markdownOutput = cliOptions.markdownOutput;

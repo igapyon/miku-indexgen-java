@@ -15,8 +15,8 @@ import jp.igapyon.mikuindexgen.coreapi.IndexgenResult;
 
 @Mojo(name = "index", threadSafe = true)
 public class MikuIndexgenMojo extends AbstractMojo {
-    @Parameter(defaultValue = "${project.basedir}", property = "miku-indexgen.targetDir")
-    private File targetDir;
+    @Parameter(defaultValue = "${project.basedir}", property = "miku-indexgen.inputDirectory")
+    private File inputDirectory;
 
     @Parameter(defaultValue = "index.json", property = "miku-indexgen.outputFileName")
     private String outputFileName = "index.json";
@@ -81,7 +81,7 @@ public class MikuIndexgenMojo extends AbstractMojo {
 
     IndexgenOptions toOptions() {
         IndexgenOptions options = new IndexgenOptions();
-        options.targetDir = targetDir.getPath();
+        options.inputDirectory = inputDirectory.getPath();
         options.outputFileName = outputFileName;
         options.title = title;
         options.markdownOutput = markdown;
@@ -98,8 +98,8 @@ public class MikuIndexgenMojo extends AbstractMojo {
         return options;
     }
 
-    public void setTargetDir(File targetDir) {
-        this.targetDir = targetDir;
+    public void setInputDirectory(File inputDirectory) {
+        this.inputDirectory = inputDirectory;
     }
 
     public void setOutputFileName(String outputFileName) {

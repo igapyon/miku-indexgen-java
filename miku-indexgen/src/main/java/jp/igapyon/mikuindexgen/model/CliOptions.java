@@ -3,7 +3,7 @@ package jp.igapyon.mikuindexgen.model;
 import java.util.List;
 
 public class CliOptions {
-    public String targetDir;
+    public String inputDirectory;
     public String outputFileName;
     public String title;
     public boolean markdownOutput;

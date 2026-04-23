@@ -65,23 +65,23 @@ public class Indexgen {
 
     public IndexgenResult createIndexes(IndexgenOptions options) throws IOException {
         long totalStart = System.nanoTime();
-        Path targetPath = Paths.get(options.targetDir).toAbsolutePath().normalize();
+        Path inputDirectoryPath = Paths.get(options.inputDirectory).toAbsolutePath().normalize();
 
-        if (!Files.isDirectory(targetPath)) {
-            throw new IllegalArgumentException("Target directory does not exist: " + targetPath);
+        if (!Files.isDirectory(inputDirectoryPath)) {
+            throw new IllegalArgumentException("Input directory does not exist: " + inputDirectoryPath);
         }
 
         IndexgenResult result = new IndexgenResult();
-        OutputPaths outputPaths = getOutputPaths(targetPath, options);
+        OutputPaths outputPaths = getOutputPaths(inputDirectoryPath, options);
         result.jsonPath = outputPaths.jsonPath;
         result.markdownPath = outputPaths.markdownPath;
 
         VerboseLogger logger = new VerboseLogger(options.verbose);
-        Logging.logVerboseStart(options, targetPath.toString(), outputPaths.jsonPath.toString(),
+        Logging.logVerboseStart(options, inputDirectoryPath.toString(), outputPaths.jsonPath.toString(),
                 outputPaths.markdownPath == null ? null : outputPaths.markdownPath.toString(), logger);
 
         long subdirsStart = System.nanoTime();
-        result.subdirectories = countImmediateSubdirectories(targetPath);
+        result.subdirectories = countImmediateSubdirectories(inputDirectoryPath);
         result.timings.subdirsMs = elapsedMs(subdirsStart);
 
         Path existingOutputPath = findExistingOutputPath(outputPaths, options.overwrite);
@@ -92,8 +92,8 @@ public class Indexgen {
         }
 
         logger.log("subdirectories=" + result.subdirectories);
-        result.files = collectIndexFiles(targetPath, options, outputPaths, result.timings, logger);
-        writeIndexOutputs(targetPath, result.files, options, outputPaths, result);
+        result.files = collectIndexFiles(inputDirectoryPath, options, outputPaths, result.timings, logger);
+        writeIndexOutputs(inputDirectoryPath, result.files, options, outputPaths, result);
         result.timings.totalMs = elapsedMs(totalStart);
         Logging.logVerboseTimings(result, options, logger);
         result.logs.addAll(logger.getLogs());
