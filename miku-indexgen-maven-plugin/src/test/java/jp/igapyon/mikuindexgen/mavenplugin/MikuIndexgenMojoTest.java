@@ -19,7 +19,7 @@ class MikuIndexgenMojoTest {
     @Test
     void toOptionsMapsMavenParametersToCoreOptions() {
         MikuIndexgenMojo mojo = new MikuIndexgenMojo();
-        mojo.setTargetDir(tempDir.toFile());
+        mojo.setInputDirectory(tempDir.toFile());
         mojo.setOutputFileName("SUMMARY.json");
         mojo.setTitle("Docs Index");
         mojo.setMarkdown(true);
@@ -34,7 +34,7 @@ class MikuIndexgenMojoTest {
 
         IndexgenOptions options = mojo.toOptions();
 
-        assertEquals(tempDir.toString(), options.targetDir);
+        assertEquals(tempDir.toString(), options.inputDirectory);
         assertEquals("SUMMARY.json", options.outputFileName);
         assertEquals("Docs Index", options.title);
         assertTrue(options.markdownOutput);
@@ -53,7 +53,7 @@ class MikuIndexgenMojoTest {
         Files.write(tempDir.resolve("sample.md"), "# Sample\n".getBytes("UTF-8"));
 
         MikuIndexgenMojo mojo = new MikuIndexgenMojo();
-        mojo.setTargetDir(tempDir.toFile());
+        mojo.setInputDirectory(tempDir.toFile());
         mojo.setMarkdown(true);
         mojo.execute();
 

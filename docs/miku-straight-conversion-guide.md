@@ -1,6 +1,6 @@
 # Miku Straight Conversion Guide
 
-Document version: `2026-04-22`
+Document version: `2026-04-23`
 
 ## 目的
 
@@ -276,6 +276,7 @@ core 実装が動き始めたら、CLI と公開入口を整える。
 - help / README / test の表現を揃える
 - README / docs / CLI help は、command 名や option 名だけでなく、説明文を流用できる程度まで同期する
 - AI 向け prompt markdown は source file 参照にせず、API / CLI 取得契約として揃える
+- Java 側独自の directory / batch 処理を追加する場合も、upstream CLI の単一入力契約と混ぜず、追加契約として明示する
 
 この段階の成果物:
 
@@ -283,6 +284,7 @@ core 実装が動き始めたら、CLI と公開入口を整える。
 - help / usage 契約
 - AI 向け prompt markdown の取得契約
 - CLI regression test
+- Java 側独自拡張の regression test
 
 ### 7. 検証を段階的に強める
 
@@ -543,7 +545,7 @@ model class は `ProjectModel`, `TaskModel`, `ResourceModel`, `AssignmentModel`,
 - 入口契約違反や構文として読めない入力は、warning へ落とさず例外へ寄せる
 - `replace` / `merge` / `patch` のような mode は文字列契約として明示し、base model が必要な mode は入口で検査する
 - `import` のような Java keyword と衝突する upstream 語彙は、`imports` や `Import` suffix のような最小変更で回避し、別語彙へ置き換えすぎない
-- Java 側の batch command は `*-batch` のように通常 command と見分けやすい名前へ寄せ、core API の責務へ混ぜない
+- Java 側の batch / directory 処理は、`*-batch`, `*-directory`, `--input-directory` のように通常の単一入力 command と見分けやすい名前へ寄せ、core API の責務へ混ぜない
 - Java 側独自の batch command や diagnostics は便利でも、core straight conversion の契約とは文書上分ける
 
 メソッド名についても同じ考え方を採る。
@@ -596,7 +598,7 @@ Java 版は upstream 全体をそのまま持ち込むことを目的にして�
 - AI 向け prompt markdown を取得する API / CLI entrypoint
 - single fat jar packaging
 - 処理対象に応じた distribution zip packaging
-- batch command など、Java 側運用のための補助導線
+- batch / directory command など、Java 側運用のための補助導線
 
 これらは upstream 本体と同一責務として混ぜず、`Java 側独自拡張` として区別して扱う。
 
@@ -610,9 +612,25 @@ Java 版は upstream 全体をそのまま持ち込むことを目的にして�
 - runtime jar 実装は `<repo>/<runtime-module>/src/...`
 - Maven plugin 実装は `<repo>/<plugin-module>/src/...`
 - shared core contract は runtime module または core module へ寄せ、plugin module へ逆流させない
+- CLI と Maven plugin の両方から使う directory / batch 処理は、plugin module ではなく runtime module または core-adjacent な runtime helper へ置く
 
 このとき、Java source が repo root 直下より 1 段深くなること自体は問題ではない。
 重要なのは、multi-module 化の理由が `Java 側独自拡張の分離` と `shared core API の再利用` で説明できること、そして README / mapping / regression docs がその構成を前提に追随していることである。
+
+directory / batch 処理は、Java では特に実用上の価値が高い。
+Maven plugin では build process の一部として複数 file を処理する需要があり、CLI でも JVM 起動コストを考えると、file ごとに Java process を起動するより一括処理のほうが自然な場面がある。
+ただし、これは upstream straight conversion の中核仕様ではなく、Java 側 execution path の追加価値として扱う。
+
+設計上の注意点:
+
+- 単一 file 変換の core API はそのまま保ち、directory / batch 処理はそれを繰り返し呼ぶ runtime helper に寄せる
+- CLI と Maven plugin の両方で同じ directory / batch 仕様を提供するなら、同じ helper を再利用し、plugin 側にだけ処理仕様を閉じ込めない
+- 入力 directory と出力 directory を契約として持つ場合、出力先未指定時に入力 directory へ並べて出力してよいかは、生成物が再度入力対象にならないことを確認してから決める
+- directory 探索対象は明示的な入力拡張子だけに限定し、生成された成果物や一時 file を巻き込まない
+- recursive の既定値は保守的に `false` とし、再帰処理を有効化した場合は相対 directory 構造を保って出力衝突を避ける
+- archive / zip 出力のような単一 file 入力向けの option は、directory mode で意味が曖昧なら禁止する
+- `inputDirectory` と `outputFile` のように意味が衝突する option は入口で明示的に拒否する
+- CLI help, README, Maven plugin parameter docs, regression docs で同じ制約を説明する
 
 ## Maven plugin を追加する場合の命名
 
@@ -642,6 +660,8 @@ parameter 命名も early stage で固定したほうがよい。
 - Maven 側だからといって意味語彙を別名へ置き換えすぎない
 - list / collection parameter は XML 要素名と Java field 名の対応を説明できる形にする
 - plugin parameter の default と README / plugin help / core defaults の記述を揃える
+- directory / batch goal を追加する場合は、CLI 側の Java 独自 option と同じ語彙を使い、`inputDirectory`, `outputDirectory`, `recursive` のような意味対応を崩さない
+- directory / batch goal と単一 file goal で相互に使えない parameter がある場合は、plugin 実行時に明示的に拒否し、README にも制約を書く
 
 知見:
 
@@ -650,6 +670,7 @@ parameter 命名も early stage で固定したほうがよい。
 - short form の成否は naming だけでなく plugin group 解決設定にも依存する
 - parameter 名を CLI と Maven plugin で別語彙にすると、README, help, test, adapter 実装の同期コストが増えやすい
 - straight conversion の主対象が CLI / batch / report 系で、build process へ自然に載るなら、plugin 命名まで含めて早めに固定したほうがよい
+- CLI と Maven plugin の両方に同じ directory / batch 機能を置くなら、plugin goal は薄い adapter にし、探索、相対 path 解決、出力名決定、変換繰り返しは runtime helper の test で固定する
 
 ## CLI の扱い
 
@@ -666,6 +687,7 @@ CLI を持つ upstream を Java へ移す場合、Java 側 CLI は Node 版 CLI 
 ただし、次は Java 側の運用都合として追加してよい。
 
 - batch command
+- directory input option
 - Maven plugin goal
 - fat jar 実行に合わせた最小限の起動方法差
 - Java runtime / file API に合わせた補助 diagnostics
@@ -676,7 +698,9 @@ CLI を持つ upstream を Java へ移す場合、Java 側 CLI は Node 版 CLI 
 
 - CLI 契約を最初に曖昧にすると、あとで help / README / test / diagnostics の同期コストが増えやすい
 - build process に自然に載る種類の CLI では、Maven plugin を用意しておくと Java 利用者向けの実用性が大きく上がりやすい
-- Java 側独自の batch command は便利だが、upstream straight conversion と混ぜると追随単位が崩れやすい
+- Java 側独自の batch / directory command は便利だが、upstream straight conversion と混ぜると追随単位が崩れやすい
+- JVM 起動コストがあるため、Java CLI では Maven plugin 以外でも directory / batch 処理を提供する妥当性がある
+- directory mode では、単一 file mode の `outputFile` や archive option をそのまま許すと意味が曖昧になりやすいため、相互排他を入口 validation で固定する
 - `core の契約` と `Java 側運用拡張` を分けて扱うほうが保守しやすい
 
 ## 文書へ戻す運用判断
@@ -716,6 +740,7 @@ straight conversion では、core API と CLI / runtime API の境界を早め�
 - `InputStream` / `OutputStream` は主に内部実装や runtime 境界で使う
 - file read / write や標準入出力との橋渡しは CLI 層に寄せる
 - CLI では通常出力や成果物本文を stdout または output file へ出し、diagnostics / usage error / progress は stderr へ出す
+- 長時間または複数 file を処理する Java CLI / Maven plugin では、処理中 file を確認できる verbose / progress diagnostics を用意する
 - binary artifact は原則として output file へ書き、stdout へ出す場合は command 契約として明示する
 - stdin 入力は text / json のような stream と相性がよいものに限定し、binary や複数 input file が必要な処理では file path 引数を優先する
 
@@ -726,6 +751,7 @@ straight conversion では、core API と CLI / runtime API の境界を早め�
 - `String` と `byte[]` を正本にし、file path や stream を境界へ寄せる整理はうまく機能しやすい
 - core が `Path` や `Files` を持ち始めると、CLI 都合の修正が core へ逆流しやすい
 - stdout / stderr の使い分けを固定すると、CLI test で正常出力と diagnostics を分けて確認しやすい
+- verbose / progress diagnostics は core の出力契約へ混ぜず、CLI では stderr、Maven plugin では Maven log へ閉じ込めると扱いやすい
 
 ## 値の持ち方
 

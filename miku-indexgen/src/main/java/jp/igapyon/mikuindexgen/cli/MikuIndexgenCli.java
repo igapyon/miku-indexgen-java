@@ -28,7 +28,11 @@ public class MikuIndexgenCli {
             CliOptions cliOptions = parseArgs(args);
             IndexgenResult result = new Indexgen().createIndexes(IndexgenOptions.fromCliOptions(cliOptions));
             for (String log : result.logs) {
-                out.println(log);
+                if (isVerboseLog(log)) {
+                    err.println(log);
+                } else {
+                    out.println(log);
+                }
             }
             if (result.skipped()) {
                 out.println("skip: " + result.skippedOutputPath);
@@ -47,6 +51,10 @@ public class MikuIndexgenCli {
             printHelp(err);
             return 1;
         }
+    }
+
+    private static boolean isVerboseLog(String log) {
+        return log != null && log.startsWith("verbose: ");
     }
 
     public static List<String> parseIncludeExtensions(String value) {
@@ -71,7 +79,6 @@ public class MikuIndexgenCli {
     }
 
     public static CliOptions parseArgs(String[] argv) {
-        List<String> positional = new ArrayList<String>();
         CliOptions options = new CliOptions();
         options.outputFileName = "index.json";
         options.markdownOutput = false;
@@ -91,6 +98,12 @@ public class MikuIndexgenCli {
 
             if ("--output".equals(arg) || "-o".equals(arg)) {
                 options.outputFileName = readRequiredOptionValue(argv, i, "--output", "a file name");
+                i++;
+                continue;
+            }
+
+            if ("--input-directory".equals(arg)) {
+                options.inputDirectory = readRequiredOptionValue(argv, i, "--input-directory", "an input directory");
                 i++;
                 continue;
             }
@@ -157,25 +170,21 @@ public class MikuIndexgenCli {
             if ("--help".equals(arg) || "-h".equals(arg)) {
                 throw new HelpRequestedException();
             }
-
-            positional.add(arg);
         }
 
-        if (positional.isEmpty()) {
-            throw new IllegalArgumentException("Please specify a target directory.");
+        if (options.inputDirectory == null || options.inputDirectory.length() == 0) {
+            throw new IllegalArgumentException("Please specify an input directory for --input-directory.");
         }
-
-        options.targetDir = positional.get(0);
         return options;
     }
 
     public static void printHelp(PrintStream out) {
         out.println("Usage:\n"
-                + "  miku-indexgen <targetDir> [--output index.json] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen --input-directory <dir> [--output index.json] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
                 + "\n"
                 + "Description:\n"
                 + "  Generate a root JSON index that aggregates matching files found under\n"
-                + "  the target directory. Markdown output is optional.\n"
+                + "  the input directory. Markdown output is optional.\n"
                 + "  Supported encodings: utf8, shift_jis\n");
     }
 

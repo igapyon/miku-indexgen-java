@@ -5,17 +5,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import jp.igapyon.mikuindexgen.model.CliOptions;
 
 class MikuIndexgenCliTest {
+    @TempDir
+    Path tempDir;
+
     @Test
-    void parseArgsParsesTheTargetDirAndOptions() {
+    void parseArgsParsesTheInputDirectoryAndOptions() {
         CliOptions options = MikuIndexgenCli.parseArgs(new String[] {
-                "./docs",
+                "--input-directory", "./docs",
                 "--output", "SUMMARY.json",
                 "--title", "Docs Index",
                 "--markdown",
@@ -29,7 +38,7 @@ class MikuIndexgenCliTest {
                 "--verbose"
         });
 
-        assertEquals("./docs", options.targetDir);
+        assertEquals("./docs", options.inputDirectory);
         assertEquals("SUMMARY.json", options.outputFileName);
         assertEquals("Docs Index", options.title);
         assertTrue(options.markdownOutput);
@@ -45,7 +54,7 @@ class MikuIndexgenCliTest {
 
     @Test
     void parseArgsEnablesGeneratorMetadataByDefault() {
-        assertTrue(MikuIndexgenCli.parseArgs(new String[] { "./docs" }).includeGeneratorMetadata.booleanValue());
+        assertTrue(MikuIndexgenCli.parseArgs(new String[] { "--input-directory", "./docs" }).includeGeneratorMetadata.booleanValue());
     }
 
     @Test
@@ -56,5 +65,30 @@ class MikuIndexgenCliTest {
     @Test
     void parseArgsSignalsHelpRequestsWithoutExitingFromTheParser() {
         assertThrows(HelpRequestedException.class, () -> MikuIndexgenCli.parseArgs(new String[] { "--help" }));
+    }
+
+    @Test
+    void runWritesVerboseLogsToStderrAndResultLinesToStdout() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Files.createDirectories(docsDir.resolve("chapter1"));
+        Files.write(docsDir.resolve("chapter1").resolve("a.md"), "# A\n".getBytes(StandardCharsets.UTF_8));
+
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+
+        int exitCode = new MikuIndexgenCli().run(
+                new String[] { "--input-directory", docsDir.toString(), "--verbose" },
+                new PrintStream(stdoutBuffer, true, "UTF-8"),
+                new PrintStream(stderrBuffer, true, "UTF-8"));
+
+        String stdout = stdoutBuffer.toString("UTF-8");
+        String stderr = stderrBuffer.toString("UTF-8");
+
+        assertEquals(0, exitCode);
+        assertTrue(stdout.contains("generated: "));
+        assertTrue(stdout.contains("completed: 1 subdirectories processed"));
+        assertFalse(stdout.contains("verbose: "));
+        assertTrue(stderr.contains("verbose: scanning-dir=."));
+        assertTrue(stderr.contains("verbose: found-file=chapter1/a.md"));
     }
 }

@@ -59,7 +59,7 @@ Implemented initial units:
   - Build success
   - Produced `miku-indexgen/target/miku-indexgen-1.0.0.jar`
   - Produced `miku-indexgen/target/miku-indexgen-dist-1.0.0.zip`
-- `2026-04-22`: `java -jar miku-indexgen/target/miku-indexgen-1.0.0.jar /tmp/miku-indexgen-smoke --markdown`
+- `2026-04-22`: `java -jar miku-indexgen/target/miku-indexgen-1.0.0.jar --input-directory /tmp/miku-indexgen-smoke --markdown`
   - Exit code: 0
   - Produced `index.json`
   - Produced `index.md`
@@ -72,14 +72,14 @@ Implemented initial units:
   - Produced `miku-indexgen/target/miku-indexgen-1.0.0.jar`
   - Produced `miku-indexgen/target/miku-indexgen-dist-1.0.0.zip`
   - Produced `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.0.0.jar`
-- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.targetDir=/tmp/miku-indexgen-plugin-smoke -Dmiku-indexgen.markdown=true`
+- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=/tmp/miku-indexgen-plugin-smoke -Dmiku-indexgen.markdown=true`
   - Build success
   - Produced `index.json`
   - Produced `index.md`
-- `2026-04-22`: `mvn miku-indexgen:index -N -Dmiku-indexgen.targetDir=/tmp/miku-indexgen-plugin-smoke -Dmiku-indexgen.markdown=true`
+- `2026-04-22`: `mvn miku-indexgen:index -N -Dmiku-indexgen.inputDirectory=/tmp/miku-indexgen-plugin-smoke -Dmiku-indexgen.markdown=true`
   - Failed because Maven plugin prefix resolution did not include the `jp.igapyon` plugin group
   - Full-coordinate execution remains the confirmed path
-- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.targetDir=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true`
+- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true`
   - Build success
   - Produced `workplace/tmp/plugin-smoke/index.json`
   - Produced `workplace/tmp/plugin-smoke/index.md`
@@ -100,7 +100,7 @@ Implemented initial units:
 - `2026-04-22`: `mvn install`
   - Reactor build success
   - Installed `1.0.0` artifacts to the local Maven repository
-- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.targetDir=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true`
+- `2026-04-22`: `mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true`
   - Build success
   - Produced `workplace/tmp/plugin-smoke/index.json`
   - Produced `workplace/tmp/plugin-smoke/index.md`

@@ -17,3 +17,58 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 - Note: short execution `mvn miku-indexgen:index` requires Maven plugin prefix resolution for the `jp.igapyon` plugin group.
 - Use `workplace/tmp` for future manual smoke inputs and generated outputs where practical.
 - Done: update `docs/miku-straight-conversion-guide.md` so future miku Java ports can treat Maven plugin goals as a high-priority first-class execution path for CLI / batch style tools.
+
+## Directory / Batch Extension Alignment
+
+- The updated `docs/miku-straight-conversion-guide.md` now treats Java-side `directory / batch` handling as an explicit extension contract, not as the upstream single-input core contract.
+- The current implementation is still directory-first in both CLI and Maven plugin, so the next work is not just feature addition but contract separation and naming cleanup.
+
+### Contract Split
+
+- TODO: define the upstream-facing single-input contract and the Java-only `directory / batch` contract separately in README, CLI help, and regression docs.
+- TODO: decide whether `miku-indexgen` keeps the current directory scan behavior as a Java extension or whether a new single-file entrypoint becomes the primary straight-conversion contract.
+- TODO: document mutually exclusive option sets up front, especially combinations equivalent to `inputDirectory` with `outputFile` or any future archive-style single-output options.
+- Done: rename the existing per-directory contract from `targetDir` to `inputDirectory` so the argument name reflects its role before more directory modes are added.
+
+### Core / Runtime Structure
+
+- TODO: keep the core API focused on single-item conversion semantics and move directory traversal / repeated execution into a runtime helper shared by CLI and Maven plugin.
+- TODO: if shared directory / batch behavior remains supported, place it in the runtime module or a core-adjacent runtime helper, not in the Maven plugin module.
+- TODO: decide and document whether generated outputs may be written into the input directory by default, and only allow that when re-scanning of generated files is prevented by contract.
+
+### CLI Tasks
+
+- TODO: introduce explicit Java-only naming for directory / batch execution so it is distinguishable from normal single-input commands or options.
+- TODO: add entry validation for conflicting option combinations in directory mode and keep those failures as usage errors, not warnings.
+- TODO: define `recursive` narrowly as "whether to recurse inside each selected base directory" and keep it separate from the question of how base directories are selected.
+- TODO: define a Java-only `child-directory-batch mode` contract for the case where a parent directory `A` is given and each direct child directory `B1`, `B2`, `B3` becomes an independent processing base directory.
+- TODO: in `child-directory-batch mode`, keep `A` itself out of the processing targets and treat only direct child directories as targets.
+- TODO: in `child-directory-batch mode`, skip hidden directories when discovering child base directories.
+- TODO: in `child-directory-batch mode`, once a child base directory is selected, apply the normal per-directory behavior from that child onward, including the usual `recursive` handling inside that child.
+- TODO: add or refine stderr-only verbose / progress diagnostics for long-running or multi-file CLI processing.
+- TODO: extend CLI regression tests so help text, usage text, stdout / stderr split, exit code, and directory-mode validation stay aligned.
+
+### Maven Plugin Tasks
+
+- TODO: keep Maven plugin goals as thin adapters over the same runtime helper used by the CLI for directory / batch execution.
+- TODO: if directory / batch parameters are added or renamed, keep Maven vocabulary aligned with CLI vocabulary such as `inputDirectory`, `outputDirectory`, and `recursive`.
+- TODO: reject plugin parameter combinations that do not make sense together, and describe the same restrictions in README.
+- TODO: decide whether the current `index` goal remains the directory-oriented Java extension goal or whether a thinner single-input goal should be introduced separately.
+- TODO: add regression tests that lock shared directory traversal, relative path handling, output naming, and conflict validation at the runtime-helper level, with plugin tests kept focused on parameter mapping and logging.
+
+### Open Design Decisions
+
+- Done: for the initial `child-directory-batch mode` draft, assume current per-child output behavior and treat shared `outputDirectory` support as a later design topic.
+- TODO: continue design discussion for how to avoid output-name collisions between child directories if `child-directory-batch mode` later supports a shared destination.
+- Done: for the initial `child-directory-batch mode` draft, stop on the first child directory failure.
+- TODO: continue design discussion for any later aggregate-result mode in `child-directory-batch mode`, including exit-code and reporting semantics.
+
+### Documentation Sync
+
+- TODO: update README so it explicitly distinguishes the straight-conversion core contract from Java-only directory / batch extensions.
+- TODO: update `docs/development.md` focused regression commands once directory / batch tests are split into core-helper, CLI, and Maven plugin layers.
+- TODO: keep future wording synchronized across README, CLI help, Maven plugin parameter docs, and regression notes so the same contract is described once and reused consistently.
+
+### Upstream Follow-Up
+
+- TODO: record for upstream Node.js / TypeScript that `targetDir` is also too ambiguous there once multiple input-selection modes are considered, and suggest role-based naming such as `inputDirectory` where feasible.
