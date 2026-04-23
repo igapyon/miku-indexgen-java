@@ -74,3 +74,4 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 
 - TODO: record for upstream Node.js / TypeScript that `targetDir` is also too ambiguous there once multiple input-selection modes are considered, and suggest role-based naming such as `inputDirectory` where feasible.
 - TODO: record for upstream Node.js / TypeScript that configurable output file naming such as `--output <fileName>` may be unnecessary if the tool contract is intentionally fixed to `index.json` / `index.md`.
+- TODO: record for upstream Node.js / TypeScript that README should prioritize general users first, with developer-oriented migration and maintenance details moved into dedicated docs.
