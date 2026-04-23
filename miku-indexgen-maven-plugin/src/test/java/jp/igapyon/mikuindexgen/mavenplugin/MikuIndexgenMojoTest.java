@@ -20,7 +20,7 @@ class MikuIndexgenMojoTest {
     void toOptionsMapsMavenParametersToCoreOptions() {
         MikuIndexgenMojo mojo = new MikuIndexgenMojo();
         mojo.setInputDirectory(tempDir.toFile());
-        mojo.setOutputFileName("SUMMARY.json");
+        mojo.setOutputDirectory(tempDir.resolve("out").toFile());
         mojo.setTitle("Docs Index");
         mojo.setMarkdown(true);
         mojo.setIncludeGeneratorMetadata(false);
@@ -35,7 +35,7 @@ class MikuIndexgenMojoTest {
         IndexgenOptions options = mojo.toOptions();
 
         assertEquals(tempDir.toString(), options.inputDirectory);
-        assertEquals("SUMMARY.json", options.outputFileName);
+        assertEquals(tempDir.resolve("out").toString(), options.outputDirectory);
         assertEquals("Docs Index", options.title);
         assertTrue(options.markdownOutput);
         assertEquals(Boolean.FALSE, options.includeGeneratorMetadata);
@@ -54,11 +54,12 @@ class MikuIndexgenMojoTest {
 
         MikuIndexgenMojo mojo = new MikuIndexgenMojo();
         mojo.setInputDirectory(tempDir.toFile());
+        mojo.setOutputDirectory(tempDir.resolve("out").toFile());
         mojo.setMarkdown(true);
         mojo.execute();
 
-        assertTrue(Files.isRegularFile(tempDir.resolve("index.json")));
-        assertTrue(Files.isRegularFile(tempDir.resolve("index.md")));
-        assertTrue(new String(Files.readAllBytes(tempDir.resolve("index.json")), "UTF-8").contains("\"summary\": \"Sample\""));
+        assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("index.json")));
+        assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("index.md")));
+        assertTrue(new String(Files.readAllBytes(tempDir.resolve("out").resolve("index.json")), "UTF-8").contains("\"summary\": \"Sample\""));
     }
 }

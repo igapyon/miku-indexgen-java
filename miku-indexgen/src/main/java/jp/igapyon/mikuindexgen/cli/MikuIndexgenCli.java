@@ -80,7 +80,6 @@ public class MikuIndexgenCli {
 
     public static CliOptions parseArgs(String[] argv) {
         CliOptions options = new CliOptions();
-        options.outputFileName = "index.json";
         options.markdownOutput = false;
         options.includeGeneratorMetadata = Boolean.TRUE;
         options.recursive = true;
@@ -96,8 +95,8 @@ public class MikuIndexgenCli {
         for (int i = 0; i < argv.length; i++) {
             String arg = argv[i];
 
-            if ("--output".equals(arg) || "-o".equals(arg)) {
-                options.outputFileName = readRequiredOptionValue(argv, i, "--output", "a file name");
+            if ("--output-directory".equals(arg)) {
+                options.outputDirectory = readRequiredOptionValue(argv, i, "--output-directory", "an output directory");
                 i++;
                 continue;
             }
@@ -180,11 +179,11 @@ public class MikuIndexgenCli {
 
     public static void printHelp(PrintStream out) {
         out.println("Usage:\n"
-                + "  miku-indexgen --input-directory <dir> [--output index.json] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen --input-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
                 + "\n"
                 + "Description:\n"
                 + "  Generate a root JSON index that aggregates matching files found under\n"
-                + "  the input directory. Markdown output is optional.\n"
+                + "  the input directory. Output files are written to the input directory by default.\n"
                 + "  Supported encodings: utf8, shift_jis\n");
     }
 

@@ -65,12 +65,14 @@ Run the runtime jar with an explicit input directory:
 ```bash
 java -jar miku-indexgen/target/miku-indexgen-1.0.0.jar \
   --input-directory docs \
+  --output-directory out \
   --markdown \
   --verbose
 ```
 
-This generates `index.json` under `inputDirectory`.
-When `--markdown` is specified, it also generates `index.md` under the same directory.
+This generates `index.json` under `outputDirectory` when specified.
+When `--output-directory` is omitted, outputs are written under `inputDirectory`.
+When `--markdown` is specified, it also generates `index.md` in the same output directory.
 Verbose diagnostics go to `stderr`.
 
 ## Core API Direction
@@ -88,8 +90,9 @@ The plugin goal is:
 
 - `index`
 
-The goal generates `index.json` under `inputDirectory`.
-When `markdown` is `true`, it also generates `index.md` under the same directory.
+The goal generates `index.json` under `outputDirectory` when specified.
+When `outputDirectory` is omitted, it writes under `inputDirectory`.
+When `markdown` is `true`, it also generates `index.md` under the same output directory.
 
 ### Explicit Execution
 
@@ -104,6 +107,7 @@ Example:
 ```bash
 mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index \
   -Dmiku-indexgen.inputDirectory=docs \
+  -Dmiku-indexgen.outputDirectory=out \
   -Dmiku-indexgen.markdown=true
 ```
 
@@ -122,6 +126,7 @@ Minimal example:
   <version>1.0.0</version>
   <configuration>
     <inputDirectory>${project.basedir}/docs</inputDirectory>
+    <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
     <markdown>true</markdown>
   </configuration>
 </plugin>
@@ -136,7 +141,7 @@ Fuller example:
   <version>1.0.0</version>
   <configuration>
     <inputDirectory>${project.basedir}/docs</inputDirectory>
-    <outputFileName>index.json</outputFileName>
+    <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
     <markdown>true</markdown>
     <recursive>true</recursive>
     <overwrite>true</overwrite>
@@ -170,6 +175,7 @@ Lifecycle binding example:
   <version>1.0.0</version>
   <configuration>
     <inputDirectory>${project.basedir}/docs</inputDirectory>
+    <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
     <markdown>true</markdown>
   </configuration>
   <executions>
@@ -189,7 +195,7 @@ Lifecycle binding example:
 | Parameter | Default | Description |
 | --- | --- | --- |
 | `inputDirectory` | `${project.basedir}` | Directory to scan. |
-| `outputFileName` | `index.json` | JSON output file name under `inputDirectory`. |
+| `outputDirectory` | unset | Directory to write outputs. When unset, outputs are written under `inputDirectory`. |
 | `title` | unset | Optional root-level title in generated JSON. |
 | `markdown` | `false` | Also generate `index.md`. |
 | `includeGeneratorMetadata` | `true` | Include root-level `generator` metadata. |
@@ -241,6 +247,7 @@ Antrun example:
       <configuration>
         <target>
           <java jar="${project.basedir}/tools/miku-indexgen-1.0.0.jar" fork="true" failonerror="true">
+            <arg value="--input-directory"/>
             <arg value="${project.basedir}/docs"/>
             <arg value="--markdown"/>
           </java>

@@ -24,6 +24,7 @@ import jp.igapyon.mikuindexgen.pathutils.PathUtils;
 
 public class Indexgen {
     private static final String GENERATOR_NAME = "miku-indexgen";
+    private static final String JSON_OUTPUT_FILE_NAME = "index.json";
     private static final String MARKDOWN_OUTPUT_FILE_NAME = "index.md";
     private static final Collator JAPANESE_COLLATOR = Collator.getInstance(Locale.JAPANESE);
 
@@ -100,10 +101,22 @@ public class Indexgen {
         return result;
     }
 
-    private OutputPaths getOutputPaths(Path targetPath, IndexgenOptions options) {
-        Path jsonPath = targetPath.resolve(options.outputFileName).normalize();
-        Path markdownPath = options.markdownOutput ? jsonPath.getParent().resolve(MARKDOWN_OUTPUT_FILE_NAME).normalize() : null;
+    private OutputPaths getOutputPaths(Path inputDirectoryPath, IndexgenOptions options) throws IOException {
+        Path outputDirectoryPath = resolveOutputDirectory(inputDirectoryPath, options.outputDirectory);
+        Path jsonPath = outputDirectoryPath.resolve(JSON_OUTPUT_FILE_NAME).normalize();
+        Path markdownPath = options.markdownOutput ? outputDirectoryPath.resolve(MARKDOWN_OUTPUT_FILE_NAME).normalize() : null;
         return new OutputPaths(jsonPath, markdownPath);
+    }
+
+    private Path resolveOutputDirectory(Path inputDirectoryPath, String outputDirectory) throws IOException {
+        if (outputDirectory == null || outputDirectory.length() == 0) {
+            return inputDirectoryPath;
+        }
+        Path outputDirectoryPath = Paths.get(outputDirectory).toAbsolutePath().normalize();
+        if (Files.exists(outputDirectoryPath) && !Files.isDirectory(outputDirectoryPath)) {
+            throw new IllegalArgumentException("Output directory must be a directory: " + outputDirectoryPath);
+        }
+        return outputDirectoryPath;
     }
 
     private boolean isGeneratedOutputPath(Path filePath, OutputPaths outputPaths) {
