@@ -89,6 +89,70 @@ class IndexgenTest {
     }
 
     @Test
+    void createIndexesProcessesEachDirectChildDirectoryInChildDirectoryBatchMode() throws Exception {
+        Path parentDir = tempDir.resolve("parent");
+        Path child1 = parentDir.resolve("b1");
+        Path child2 = parentDir.resolve("b2");
+        Files.createDirectories(child1.resolve("nested"));
+        Files.createDirectories(child2);
+        Files.createDirectories(parentDir.resolve(".hidden-child"));
+        Files.write(parentDir.resolve("note.md"), "# Parent\n".getBytes("UTF-8"));
+        Files.write(child1.resolve("a.md"), "# A\n".getBytes("UTF-8"));
+        Files.write(child1.resolve("nested").resolve("deep.md"), "# Deep\n".getBytes("UTF-8"));
+        Files.write(child2.resolve("b.md"), "# B\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = new IndexgenOptions();
+        options.inputParentDirectory = parentDir.toString();
+        options.markdownOutput = true;
+        options.recursive = true;
+        options.overwrite = true;
+        options.verbose = false;
+        options.includeExtensions = Arrays.asList("md", "json");
+        options.inputEncoding = "utf8";
+        options.outputEncoding = "utf8";
+
+        IndexgenResult result = new Indexgen().createIndexes(options);
+
+        assertEquals(2, result.childDirectoriesProcessed);
+        assertTrue(Files.isRegularFile(child1.resolve("index.json")));
+        assertTrue(Files.isRegularFile(child2.resolve("index.json")));
+        assertFalse(Files.exists(parentDir.resolve("index.json")));
+        assertFalse(Files.exists(parentDir.resolve(".hidden-child").resolve("index.json")));
+        String child1Index = new String(Files.readAllBytes(child1.resolve("index.json")), "UTF-8");
+        assertTrue(child1Index.contains("\"path\": \"nested/deep.md\""));
+    }
+
+    @Test
+    void createIndexesWritesChildDirectoryBatchOutputsUnderSharedOutputDirectoryWhenSpecified() throws Exception {
+        Path parentDir = tempDir.resolve("parent");
+        Path outDir = tempDir.resolve("out");
+        Path child1 = parentDir.resolve("b1");
+        Path child2 = parentDir.resolve("b2");
+        Files.createDirectories(child1);
+        Files.createDirectories(child2);
+        Files.write(child1.resolve("a.md"), "# A\n".getBytes("UTF-8"));
+        Files.write(child2.resolve("b.md"), "# B\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = new IndexgenOptions();
+        options.inputParentDirectory = parentDir.toString();
+        options.outputDirectory = outDir.toString();
+        options.markdownOutput = true;
+        options.recursive = false;
+        options.overwrite = true;
+        options.includeExtensions = Arrays.asList("md", "json");
+        options.inputEncoding = "utf8";
+        options.outputEncoding = "utf8";
+
+        new Indexgen().createIndexes(options);
+
+        assertTrue(Files.isRegularFile(outDir.resolve("b1").resolve("index.json")));
+        assertTrue(Files.isRegularFile(outDir.resolve("b2").resolve("index.json")));
+        assertFalse(Files.exists(child1.resolve("index.json")));
+        String index = new String(Files.readAllBytes(outDir.resolve("b1").resolve("index.json")), "UTF-8");
+        assertTrue(index.contains("\"basePath\": \"../../parent/b1\""));
+    }
+
+    @Test
     void createIndexesDoesNotOverwriteExistingOutputWhenDisabled() throws Exception {
         Path docsDir = tempDir.resolve("docs");
         Files.createDirectories(docsDir);

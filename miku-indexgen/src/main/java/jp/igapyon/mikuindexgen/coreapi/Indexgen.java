@@ -65,6 +65,14 @@ public class Indexgen {
     }
 
     public IndexgenResult createIndexes(IndexgenOptions options) throws IOException {
+        validateInputMode(options);
+        if (hasValue(options.inputParentDirectory)) {
+            return createIndexesForChildDirectories(options);
+        }
+        return createIndexesForSingleInputDirectory(options);
+    }
+
+    private IndexgenResult createIndexesForSingleInputDirectory(IndexgenOptions options) throws IOException {
         long totalStart = System.nanoTime();
         Path inputDirectoryPath = Paths.get(options.inputDirectory).toAbsolutePath().normalize();
 
@@ -101,6 +109,49 @@ public class Indexgen {
         return result;
     }
 
+    private IndexgenResult createIndexesForChildDirectories(IndexgenOptions options) throws IOException {
+        Path inputParentDirectoryPath = Paths.get(options.inputParentDirectory).toAbsolutePath().normalize();
+        if (!Files.isDirectory(inputParentDirectoryPath)) {
+            throw new IllegalArgumentException("Input parent directory does not exist: " + inputParentDirectoryPath);
+        }
+
+        Path sharedOutputDirectory = resolveBatchSharedOutputDirectory(options.outputDirectory);
+        List<Path> childDirectories = collectChildBaseDirectories(inputParentDirectoryPath, sharedOutputDirectory);
+
+        IndexgenResult result = new IndexgenResult();
+        result.childDirectoriesProcessed = childDirectories.size();
+        result.subdirectories = childDirectories.size();
+
+        for (Path childDirectory : childDirectories) {
+            IndexgenOptions childOptions = copyOptionsForChildDirectory(options, childDirectory,
+                    resolveChildOutputDirectory(sharedOutputDirectory, childDirectory));
+            IndexgenResult childResult = createIndexesForSingleInputDirectory(childOptions);
+            result.files.addAll(childResult.files);
+            result.generatedPaths.addAll(childResult.generatedPaths);
+            result.logs.addAll(childResult.logs);
+            if (childResult.skipped()) {
+                result.logs.add("skip: " + childResult.skippedOutputPath);
+            }
+        }
+
+        return result;
+    }
+
+    private void validateInputMode(IndexgenOptions options) {
+        if (options == null) {
+            throw new IllegalArgumentException("Options are required.");
+        }
+        boolean hasInputDirectory = hasValue(options.inputDirectory);
+        boolean hasInputParentDirectory = hasValue(options.inputParentDirectory);
+        if (hasInputDirectory == hasInputParentDirectory) {
+            throw new IllegalArgumentException("Specify either inputDirectory or inputParentDirectory.");
+        }
+    }
+
+    private boolean hasValue(String value) {
+        return value != null && value.length() > 0;
+    }
+
     private OutputPaths getOutputPaths(Path inputDirectoryPath, IndexgenOptions options) throws IOException {
         Path outputDirectoryPath = resolveOutputDirectory(inputDirectoryPath, options.outputDirectory);
         Path jsonPath = outputDirectoryPath.resolve(JSON_OUTPUT_FILE_NAME).normalize();
@@ -117,6 +168,70 @@ public class Indexgen {
             throw new IllegalArgumentException("Output directory must be a directory: " + outputDirectoryPath);
         }
         return outputDirectoryPath;
+    }
+
+    private Path resolveBatchSharedOutputDirectory(String outputDirectory) throws IOException {
+        if (outputDirectory == null || outputDirectory.length() == 0) {
+            return null;
+        }
+        Path outputDirectoryPath = Paths.get(outputDirectory).toAbsolutePath().normalize();
+        if (Files.exists(outputDirectoryPath) && !Files.isDirectory(outputDirectoryPath)) {
+            throw new IllegalArgumentException("Output directory must be a directory: " + outputDirectoryPath);
+        }
+        return outputDirectoryPath;
+    }
+
+    private List<Path> collectChildBaseDirectories(Path inputParentDirectoryPath, Path sharedOutputDirectory) throws IOException {
+        List<Path> childDirectories = new ArrayList<Path>();
+        for (Path entry : listVisibleEntries(inputParentDirectoryPath)) {
+            if (!Files.isDirectory(entry)) {
+                continue;
+            }
+            if (isSharedOutputChildDirectory(entry, inputParentDirectoryPath, sharedOutputDirectory)) {
+                continue;
+            }
+            childDirectories.add(entry);
+        }
+        return childDirectories;
+    }
+
+    private boolean isSharedOutputChildDirectory(Path childDirectory, Path inputParentDirectoryPath, Path sharedOutputDirectory) {
+        if (sharedOutputDirectory == null) {
+            return false;
+        }
+        if (!sharedOutputDirectory.startsWith(inputParentDirectoryPath)) {
+            return false;
+        }
+        Path relativeOutputPath = inputParentDirectoryPath.relativize(sharedOutputDirectory);
+        if (relativeOutputPath.getNameCount() != 1) {
+            return false;
+        }
+        return childDirectory.toAbsolutePath().normalize().equals(sharedOutputDirectory);
+    }
+
+    private Path resolveChildOutputDirectory(Path sharedOutputDirectory, Path childDirectory) {
+        if (sharedOutputDirectory == null) {
+            return null;
+        }
+        Path childName = childDirectory.getFileName();
+        return childName == null ? sharedOutputDirectory : sharedOutputDirectory.resolve(childName.toString());
+    }
+
+    private IndexgenOptions copyOptionsForChildDirectory(IndexgenOptions options, Path childDirectory, Path childOutputDirectory) {
+        IndexgenOptions childOptions = new IndexgenOptions();
+        childOptions.inputDirectory = childDirectory.toString();
+        childOptions.outputDirectory = childOutputDirectory == null ? null : childOutputDirectory.toString();
+        childOptions.title = options.title;
+        childOptions.markdownOutput = options.markdownOutput;
+        childOptions.includeGeneratorMetadata = options.includeGeneratorMetadata;
+        childOptions.jsonSummaryPaths = copyList(options.jsonSummaryPaths);
+        childOptions.recursive = options.recursive;
+        childOptions.overwrite = options.overwrite;
+        childOptions.verbose = options.verbose;
+        childOptions.includeExtensions = copyList(options.includeExtensions);
+        childOptions.inputEncoding = options.inputEncoding;
+        childOptions.outputEncoding = options.outputEncoding;
+        return childOptions;
     }
 
     private boolean isGeneratedOutputPath(Path filePath, OutputPaths outputPaths) {
@@ -388,5 +503,9 @@ public class Indexgen {
 
     private double elapsedMs(long startNanos) {
         return (System.nanoTime() - startNanos) / 1_000_000.0;
+    }
+
+    private List<String> copyList(List<String> values) {
+        return values == null ? null : new ArrayList<String>(values);
     }
 }

@@ -6,6 +6,7 @@
 mvn test
 mvn package
 mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/plugin-out -Dmiku-indexgen.markdown=true
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index-child-directories -Dmiku-indexgen.inputParentDirectory=workplace/tmp/parent-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/parent-out -Dmiku-indexgen.markdown=true
 ```
 
 ## Local Temporary Work
@@ -61,10 +62,10 @@ mvn test -Dtest=EncodingTest
 mvn test -Dtest=MikuIndexgenCliTest
 ```
 
-## Child-Directory-Batch Draft
+## Child-Directory-Batch Mode
 
-This is a draft Java-side extension contract for `child-directory-batch mode`.
-It is intentionally separate from the upstream-facing single-input contract.
+This is the current Java-side extension contract for `child-directory-batch mode`.
+It remains separate from the upstream-facing single-input contract.
 
 ### Purpose
 
@@ -89,24 +90,25 @@ This avoids repeating equivalent CLI or Maven plugin invocations for each child 
 
 - In existing `inputDirectory` mode, `outputDirectory` may be specified to place `index.json` and `index.md` outside the input tree.
 - When `outputDirectory` is omitted in `inputDirectory` mode, outputs are written under `inputDirectory`.
-- In `child-directory-batch mode`, the shared `outputDirectory` design remains open and must be specified separately before implementation.
+- In `child-directory-batch mode`, when `outputDirectory` is omitted, outputs are written under each selected child directory.
+- In `child-directory-batch mode`, when `outputDirectory` is specified, outputs are written under child-specific paths such as `<outputDirectory>/<child>/index.json`.
 
 ### Failure Contract
 
 - Initial version behavior: stop on the first child directory failure.
 - Partial-success aggregation is not part of the first version.
 
-### CLI Expression Draft
+### CLI Expression
 
 - Replace the old positional `targetDir` contract with explicit input-role naming.
 - Add an explicit Java-only option for child discovery rather than overloading `recursive`.
-- Current draft vocabulary:
+- Current vocabulary:
 - `--input-directory <dir>`: existing per-directory mode
 - `--output-directory <dir>`: write `index.json` and optional `index.md` under the specified output directory
-  - `--input-parent-directory <dir>`: enable `child-directory-batch mode` and treat each direct child directory under the specified parent as an independent base directory
-  - `--no-recursive`: keep the existing meaning for per-directory scanning inside each selected child base directory
-  - `--verbose`: print progress diagnostics to stderr
-- Draft usage example:
+- `--input-parent-directory <dir>`: enable `child-directory-batch mode` and treat each direct child directory under the specified parent as an independent base directory
+- `--no-recursive`: keep the existing meaning for per-directory scanning inside each selected child base directory
+- `--verbose`: print progress diagnostics to stderr
+- Usage examples:
 
 ```bash
 miku-indexgen --input-directory docs --markdown --verbose
@@ -119,16 +121,16 @@ miku-indexgen --input-parent-directory A --markdown --verbose
   - `--input-parent-directory` does not change the meaning of `--no-recursive`; it only changes how base directories are selected
   - future options that assume a single processing base must be rejected when `--input-parent-directory` is active
 
-### Maven Plugin Expression Draft
+### Maven Plugin Expression
 
-- Keep the current `index` goal as the existing per-directory goal for now.
-- Add a separate Java-only goal rather than overloading `index` with ambiguous parent-directory semantics.
-- Current draft vocabulary:
-  - goal: `index-child-directories`
+- Existing per-directory goal: `index`
+- Child-directory batch goal: `index-child-directories`
+- Current vocabulary:
   - parameter: `inputParentDirectory`
+  - reused parameter: `outputDirectory`
   - reused parameter: `recursive`
   - reused parameter: `verbose`
-- Draft execution example:
+- Execution example:
 
 ```bash
 mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index-child-directories \
@@ -137,14 +139,13 @@ mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index-child-directories \
   -Dmiku-indexgen.verbose=true
 ```
 
-- Draft plugin rules:
+- Plugin rules:
   - `index` and `index-child-directories` should remain separate execution contracts
   - `inputParentDirectory` belongs only to `index-child-directories`
   - child discovery, hidden-directory skipping, and stop-on-first-failure behavior should live in a shared runtime helper, not in the Mojo body
 
 ### Remaining Design Questions
 
-- If a shared `outputDirectory` is later introduced for `child-directory-batch mode`, define how child-relative paths and output-name collisions are resolved.
 - If failure aggregation is added later, define result reporting and exit-code behavior explicitly.
 
 ## Upstream Reference
