@@ -1,23 +1,122 @@
 # Development
 
+This document is for repository maintainers and contributors.
+For normal tool usage, see `README.md`.
+
+## Scope
+
+This document covers:
+
+- repository structure
+- local development commands
+- focused regression commands
+- local temporary workspace rules
+- Maven plugin development notes
+- related project documents
+
+This document does not try to be the user-facing usage guide.
+
+## Repository Structure
+
+This repository is a multi-module Maven reactor.
+
+- repository root
+  - aggregator project `miku-indexgen-java`
+- `miku-indexgen/`
+  - runtime jar and CLI implementation
+- `miku-indexgen-maven-plugin/`
+  - Maven plugin implementation
+- `docs/`
+  - migration, mapping, and development documents
+- `workplace/`
+  - local upstream checkout and temporary local work area
+
+The runtime jar and the Maven plugin are separate deliverables, but both use the same core API.
+
+## Core Design
+
+Index generation is centered on `Indexgen.createIndexes(IndexgenOptions)`.
+
+- CLI parses arguments and converts them into `IndexgenOptions`
+- Maven plugin maps plugin parameters into the same `IndexgenOptions`
+- directory traversal and child-directory batch behavior are shared in runtime-side code instead of being reimplemented in each adapter
+
+This repository intentionally keeps CLI and Maven plugin layers thin.
+
 ## Primary Commands
+
+Use these commands for routine local verification:
 
 ```bash
 mvn test
 mvn package
+```
+
+Useful Maven plugin smoke commands:
+
+```bash
 mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/plugin-out -Dmiku-indexgen.markdown=true
 mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index-child-directories -Dmiku-indexgen.inputParentDirectory=workplace/tmp/parent-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/parent-out -Dmiku-indexgen.markdown=true
+```
+
+## Focused Regression Commands
+
+Run targeted tests when working on a specific area:
+
+```bash
+mvn test -Dtest=IndexgenTest
+mvn test -Dtest=MikuIndexgenMojoTest
+mvn test -Dtest=MarkdownTest
+mvn test -Dtest=JsonSummaryTest
+mvn test -Dtest=PathUtilsTest
+mvn test -Dtest=EncodingTest
+mvn test -Dtest=MikuIndexgenCliTest
 ```
 
 ## Local Temporary Work
 
 Use `workplace/tmp` for manual smoke inputs and generated outputs.
 
-`workplace/` contents other than `workplace/.gitkeep` are not tracked by Git, so this area is suitable for local verification artifacts.
+Rules:
 
-## Maven Plugin Configuration
+- keep `workplace/.gitkeep` only as tracked content
+- do not commit local smoke inputs or generated outputs under `workplace/`
+- use `workplace/miku-indexgen` as the temporary upstream checkout when needed
 
-Maven plugin parameters can be passed through XML configuration in a consuming `pom.xml`.
+`workplace/` is for local reference and temporary verification, not for primary implementation files.
+
+## Packaging Notes
+
+`mvn package` currently produces these main artifacts:
+
+- `miku-indexgen/target/miku-indexgen-1.0.0.jar`
+- `miku-indexgen/target/miku-indexgen-dist-1.0.0.zip`
+- `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.0.0.jar`
+
+The GitHub release workflow currently uploads the runtime jar artifact for end users.
+
+## Maven Plugin Notes
+
+The Maven plugin is a first-class execution path, but lifecycle binding should remain opt-in.
+
+Recommended approach:
+
+- explicit execution first
+- lifecycle binding only in consuming projects that want automatic generation
+
+Full-coordinate execution works without plugin prefix resolution:
+
+```bash
+mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
+```
+
+Short-form execution requires Maven plugin prefix resolution for the `jp.igapyon` plugin group:
+
+```bash
+mvn miku-indexgen:index
+```
+
+Minimal `pom.xml` example:
 
 ```xml
 <plugin>
@@ -28,15 +127,11 @@ Maven plugin parameters can be passed through XML configuration in a consuming `
     <inputDirectory>${project.basedir}/docs</inputDirectory>
     <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
     <markdown>true</markdown>
-    <includeExtensions>
-      <includeExtension>md</includeExtension>
-      <includeExtension>json</includeExtension>
-    </includeExtensions>
   </configuration>
 </plugin>
 ```
 
-Automatic lifecycle execution should be opt-in.
+Optional lifecycle binding example:
 
 ```xml
 <executions>
@@ -50,110 +145,39 @@ Automatic lifecycle execution should be opt-in.
 </executions>
 ```
 
-## Focused Regression Commands
+## Child-Directory Batch Mode
 
-```bash
-mvn test -Dtest=IndexgenTest
-mvn test -Dtest=MikuIndexgenMojoTest
-mvn test -Dtest=MarkdownTest
-mvn test -Dtest=JsonSummaryTest
-mvn test -Dtest=PathUtilsTest
-mvn test -Dtest=EncodingTest
-mvn test -Dtest=MikuIndexgenCliTest
-```
+This repository currently supports a Java-side `child-directory batch` execution mode.
 
-## Child-Directory-Batch Mode
+Current contract:
 
-This is the current Java-side extension contract for `child-directory-batch mode`.
-It remains separate from the upstream-facing single-input contract.
+- `inputParentDirectory` selects a parent directory
+- the parent directory itself is not processed as an input base
+- only direct child directories are selected
+- direct child files are ignored
+- hidden child directories are skipped
+- `recursive` still means recursion inside each selected child base directory
+- when `outputDirectory` is omitted, outputs are written under each child directory
+- when `outputDirectory` is specified, outputs are written under child-specific paths such as `<outputDirectory>/<child>/index.json`
+- current behavior stops on the first child failure
 
-### Purpose
+This is a Java-side extension contract and should not be confused with the upstream-facing single-input contract discussion.
 
-When a parent directory `A` contains child directories such as `B1`, `B2`, and `B3`, this mode treats each direct child directory as an independent processing base directory.
-This avoids repeating equivalent CLI or Maven plugin invocations for each child directory manually.
+## Related Documents
 
-### Input Contract
+Use these documents together, depending on the task:
 
-- The user specifies a parent directory such as `A`.
-- `A` itself is not processed as a base directory.
-- Only direct child directories of `A` are selected as base directories.
-- Direct child files under `A` are not selected as processing targets.
-- Hidden directories are skipped during child directory discovery.
-
-### Per-Child Behavior
-
-- After a child directory such as `B1` is selected, processing returns to the normal per-directory behavior used today by `miku-indexgen-java`.
-- `recursive` keeps its narrow meaning: whether processing recurses inside each selected child base directory.
-- In other words, `child-directory-batch mode` decides how base directories are selected, and `recursive` decides how each selected base directory is scanned internally.
-
-### Output Contract
-
-- In existing `inputDirectory` mode, `outputDirectory` may be specified to place `index.json` and `index.md` outside the input tree.
-- When `outputDirectory` is omitted in `inputDirectory` mode, outputs are written under `inputDirectory`.
-- In `child-directory-batch mode`, when `outputDirectory` is omitted, outputs are written under each selected child directory.
-- In `child-directory-batch mode`, when `outputDirectory` is specified, outputs are written under child-specific paths such as `<outputDirectory>/<child>/index.json`.
-
-### Failure Contract
-
-- Initial version behavior: stop on the first child directory failure.
-- Partial-success aggregation is not part of the first version.
-
-### CLI Expression
-
-- Replace the old positional `targetDir` contract with explicit input-role naming.
-- Add an explicit Java-only option for child discovery rather than overloading `recursive`.
-- Current vocabulary:
-- `--input-directory <dir>`: existing per-directory mode
-- `--output-directory <dir>`: write `index.json` and optional `index.md` under the specified output directory
-- `--input-parent-directory <dir>`: enable `child-directory-batch mode` and treat each direct child directory under the specified parent as an independent base directory
-- `--no-recursive`: keep the existing meaning for per-directory scanning inside each selected child base directory
-- `--verbose`: print progress diagnostics to stderr
-- Usage examples:
-
-```bash
-miku-indexgen --input-directory docs --markdown --verbose
-miku-indexgen --input-directory docs --output-directory out --markdown
-miku-indexgen --input-parent-directory A --markdown --verbose
-```
-
-- Draft validation rules:
-  - `--input-directory` and `--input-parent-directory` cannot be used together
-  - `--input-parent-directory` does not change the meaning of `--no-recursive`; it only changes how base directories are selected
-  - future options that assume a single processing base must be rejected when `--input-parent-directory` is active
-
-### Maven Plugin Expression
-
-- Existing per-directory goal: `index`
-- Child-directory batch goal: `index-child-directories`
-- Current vocabulary:
-  - parameter: `inputParentDirectory`
-  - reused parameter: `outputDirectory`
-  - reused parameter: `recursive`
-  - reused parameter: `verbose`
-- Execution example:
-
-```bash
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index-child-directories \
-  -Dmiku-indexgen.inputParentDirectory=A \
-  -Dmiku-indexgen.markdown=true \
-  -Dmiku-indexgen.verbose=true
-```
-
-- Plugin rules:
-  - `index` and `index-child-directories` should remain separate execution contracts
-  - `inputParentDirectory` belongs only to `index-child-directories`
-  - child discovery, hidden-directory skipping, and stop-on-first-failure behavior should live in a shared runtime helper, not in the Mojo body
-
-### Remaining Design Questions
-
-- If failure aggregation is added later, define result reporting and exit-code behavior explicitly.
-
-## Upstream Reference
-
-The initial upstream checkout is kept under:
-
-```text
-workplace/miku-indexgen
-```
-
-`workplace/` contents other than `workplace/.gitkeep` are not tracked by Git.
+- `README.md`
+  - user-facing entry point
+- `docs/miku-straight-conversion-guide.md`
+  - common straight conversion principles for miku Java ports
+- `docs/upstream-class-mapping.md`
+  - `upstream file -> Java class` mapping
+- `docs/upstream-test-mapping.md`
+  - `upstream test intent -> Java test` mapping
+- `docs/upstream-followup-log.md`
+  - known diffs, follow-up items, and verification history
+- `docs/remaining-migration-items.md`
+  - current migration state and latest verification notes
+- `TODO.md`
+  - open design and follow-up tasks
