@@ -5,7 +5,7 @@
 ```bash
 mvn test
 mvn package
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.markdown=true
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/plugin-out -Dmiku-indexgen.markdown=true
 ```
 
 ## Local Temporary Work
@@ -25,6 +25,7 @@ Maven plugin parameters can be passed through XML configuration in a consuming `
   <version>1.0.0</version>
   <configuration>
     <inputDirectory>${project.basedir}/docs</inputDirectory>
+    <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
     <markdown>true</markdown>
     <includeExtensions>
       <includeExtension>md</includeExtension>
@@ -86,8 +87,9 @@ This avoids repeating equivalent CLI or Maven plugin invocations for each child 
 
 ### Output Contract
 
-- Initial assumption: output continues to follow the current behavior, so each selected child directory writes outputs under that child directory when no separate shared output location is introduced.
-- A future shared `outputDirectory` design remains open and must be specified separately before implementation.
+- In existing `inputDirectory` mode, `outputDirectory` may be specified to place `index.json` and `index.md` outside the input tree.
+- When `outputDirectory` is omitted in `inputDirectory` mode, outputs are written under `inputDirectory`.
+- In `child-directory-batch mode`, the shared `outputDirectory` design remains open and must be specified separately before implementation.
 
 ### Failure Contract
 
@@ -100,6 +102,7 @@ This avoids repeating equivalent CLI or Maven plugin invocations for each child 
 - Add an explicit Java-only option for child discovery rather than overloading `recursive`.
 - Current draft vocabulary:
 - `--input-directory <dir>`: existing per-directory mode
+- `--output-directory <dir>`: write `index.json` and optional `index.md` under the specified output directory
   - `--input-parent-directory <dir>`: enable `child-directory-batch mode` and treat each direct child directory under the specified parent as an independent base directory
   - `--no-recursive`: keep the existing meaning for per-directory scanning inside each selected child base directory
   - `--verbose`: print progress diagnostics to stderr
@@ -107,6 +110,7 @@ This avoids repeating equivalent CLI or Maven plugin invocations for each child 
 
 ```bash
 miku-indexgen --input-directory docs --markdown --verbose
+miku-indexgen --input-directory docs --output-directory out --markdown
 miku-indexgen --input-parent-directory A --markdown --verbose
 ```
 

@@ -25,7 +25,7 @@ class MikuIndexgenCliTest {
     void parseArgsParsesTheInputDirectoryAndOptions() {
         CliOptions options = MikuIndexgenCli.parseArgs(new String[] {
                 "--input-directory", "./docs",
-                "--output", "SUMMARY.json",
+                "--output-directory", "./out",
                 "--title", "Docs Index",
                 "--markdown",
                 "--no-generator",
@@ -39,7 +39,7 @@ class MikuIndexgenCliTest {
         });
 
         assertEquals("./docs", options.inputDirectory);
-        assertEquals("SUMMARY.json", options.outputFileName);
+        assertEquals("./out", options.outputDirectory);
         assertEquals("Docs Index", options.title);
         assertTrue(options.markdownOutput);
         assertFalse(options.includeGeneratorMetadata.booleanValue());
@@ -90,5 +90,23 @@ class MikuIndexgenCliTest {
         assertFalse(stdout.contains("verbose: "));
         assertTrue(stderr.contains("verbose: scanning-dir=."));
         assertTrue(stderr.contains("verbose: found-file=chapter1/a.md"));
+    }
+
+    @Test
+    void runWritesOutputsUnderOutputDirectoryWhenSpecified() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Path outDir = tempDir.resolve("out");
+        Files.createDirectories(docsDir.resolve("chapter1"));
+        Files.write(docsDir.resolve("chapter1").resolve("a.md"), "# A\n".getBytes(StandardCharsets.UTF_8));
+
+        int exitCode = new MikuIndexgenCli().run(
+                new String[] { "--input-directory", docsDir.toString(), "--output-directory", outDir.toString(), "--markdown" },
+                new PrintStream(new ByteArrayOutputStream(), true, "UTF-8"),
+                new PrintStream(new ByteArrayOutputStream(), true, "UTF-8"));
+
+        assertEquals(0, exitCode);
+        assertTrue(Files.isRegularFile(outDir.resolve("index.json")));
+        assertTrue(Files.isRegularFile(outDir.resolve("index.md")));
+        assertFalse(Files.exists(docsDir.resolve("index.json")));
     }
 }

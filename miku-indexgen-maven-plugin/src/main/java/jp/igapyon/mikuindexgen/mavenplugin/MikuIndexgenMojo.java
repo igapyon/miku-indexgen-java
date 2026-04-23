@@ -18,8 +18,8 @@ public class MikuIndexgenMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.basedir}", property = "miku-indexgen.inputDirectory")
     private File inputDirectory;
 
-    @Parameter(defaultValue = "index.json", property = "miku-indexgen.outputFileName")
-    private String outputFileName = "index.json";
+    @Parameter(property = "miku-indexgen.outputDirectory")
+    private File outputDirectory;
 
     @Parameter(property = "miku-indexgen.title")
     private String title;
@@ -82,7 +82,7 @@ public class MikuIndexgenMojo extends AbstractMojo {
     IndexgenOptions toOptions() {
         IndexgenOptions options = new IndexgenOptions();
         options.inputDirectory = inputDirectory.getPath();
-        options.outputFileName = outputFileName;
+        options.outputDirectory = outputDirectory == null ? null : outputDirectory.getPath();
         options.title = title;
         options.markdownOutput = markdown;
         options.includeGeneratorMetadata = Boolean.valueOf(includeGeneratorMetadata);
@@ -102,8 +102,8 @@ public class MikuIndexgenMojo extends AbstractMojo {
         this.inputDirectory = inputDirectory;
     }
 
-    public void setOutputFileName(String outputFileName) {
-        this.outputFileName = outputFileName;
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
     }
 
     public void setTitle(String title) {

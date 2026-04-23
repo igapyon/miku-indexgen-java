@@ -4,7 +4,7 @@ import java.util.List;
 
 public class CliOptions {
     public String inputDirectory;
-    public String outputFileName;
+    public String outputDirectory;
     public String title;
     public boolean markdownOutput;
     public Boolean includeGeneratorMetadata;

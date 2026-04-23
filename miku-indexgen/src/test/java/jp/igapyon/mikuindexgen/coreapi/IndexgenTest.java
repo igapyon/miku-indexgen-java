@@ -67,6 +67,28 @@ class IndexgenTest {
     }
 
     @Test
+    void createIndexesWritesOutputsUnderOutputDirectoryWhenSpecified() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Path outDir = tempDir.resolve("out");
+        Path chapter1 = docsDir.resolve("chapter1");
+
+        Files.createDirectories(chapter1);
+        Files.write(docsDir.resolve("root.md"), "# Root\n".getBytes("UTF-8"));
+        Files.write(chapter1.resolve("a.md"), "# A\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = defaultOptions(docsDir);
+        options.outputDirectory = outDir.toString();
+        options.markdownOutput = true;
+        new Indexgen().createIndexes(options);
+
+        assertTrue(Files.isRegularFile(outDir.resolve("index.json")));
+        assertTrue(Files.isRegularFile(outDir.resolve("index.md")));
+        assertFalse(Files.exists(docsDir.resolve("index.json")));
+        String index = new String(Files.readAllBytes(outDir.resolve("index.json")), "UTF-8");
+        assertTrue(index.contains("\"basePath\": \"../docs\""));
+    }
+
+    @Test
     void createIndexesDoesNotOverwriteExistingOutputWhenDisabled() throws Exception {
         Path docsDir = tempDir.resolve("docs");
         Files.createDirectories(docsDir);
@@ -170,7 +192,6 @@ class IndexgenTest {
     private IndexgenOptions defaultOptions(Path docsDir) {
         IndexgenOptions options = new IndexgenOptions();
         options.inputDirectory = docsDir.toString();
-        options.outputFileName = "index.json";
         options.markdownOutput = false;
         options.recursive = true;
         options.overwrite = true;

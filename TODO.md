@@ -27,7 +27,8 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 
 - TODO: define the upstream-facing single-input contract and the Java-only `directory / batch` contract separately in README, CLI help, and regression docs.
 - TODO: decide whether `miku-indexgen` keeps the current directory scan behavior as a Java extension or whether a new single-file entrypoint becomes the primary straight-conversion contract.
-- TODO: document mutually exclusive option sets up front, especially combinations equivalent to `inputDirectory` with `outputFile` or any future archive-style single-output options.
+- Done: remove Java-side `--output <fileName>` / `outputFileName` style naming overrides and simplify the contract to fixed output names such as `index.json` and `index.md`.
+- TODO: document mutually exclusive option sets up front, especially combinations equivalent to `inputDirectory` with any future archive-style single-output options.
 - Done: rename the existing per-directory contract from `targetDir` to `inputDirectory` so the argument name reflects its role before more directory modes are added.
 
 ### Core / Runtime Structure
@@ -72,3 +73,4 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 ### Upstream Follow-Up
 
 - TODO: record for upstream Node.js / TypeScript that `targetDir` is also too ambiguous there once multiple input-selection modes are considered, and suggest role-based naming such as `inputDirectory` where feasible.
+- TODO: record for upstream Node.js / TypeScript that configurable output file naming such as `--output <fileName>` may be unnecessary if the tool contract is intentionally fixed to `index.json` / `index.md`.
