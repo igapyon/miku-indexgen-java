@@ -62,4 +62,18 @@ class MikuIndexgenMojoTest {
         assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("index.md")));
         assertTrue(new String(Files.readAllBytes(tempDir.resolve("out").resolve("index.json")), "UTF-8").contains("\"summary\": \"Sample\""));
     }
+
+    @Test
+    void executeWritesVerboseLogsThroughMojoLoggerWithoutDuplicatingBufferedLogs() throws Exception {
+        Files.write(tempDir.resolve("sample.md"), "# Sample\n".getBytes("UTF-8"));
+
+        RecordingLog log = new RecordingLog();
+        MikuIndexgenMojo mojo = new MikuIndexgenMojo();
+        mojo.setLog(log);
+        mojo.setInputDirectory(tempDir.toFile());
+        mojo.setVerbose(true);
+        mojo.execute();
+
+        assertEquals(1, log.countInfoLine("verbose: reading-file=sample.md"));
+    }
 }

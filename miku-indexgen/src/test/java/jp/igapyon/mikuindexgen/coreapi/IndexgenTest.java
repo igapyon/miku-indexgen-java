@@ -221,7 +221,7 @@ class IndexgenTest {
         assertTrue(result.logs.contains("verbose: json-summary-path=/title,/name"));
         assertTrue(result.logs.contains("verbose: subdirectories=1"));
         assertTrue(result.logs.contains("verbose: scanning-dir=."));
-        assertTrue(result.logs.contains("verbose: found-file=chapter1/a.md"));
+        assertTrue(result.logs.contains("verbose: reading-file=chapter1/a.md"));
         assertTrue(startsWith(result.logs, "verbose: timing.json.write="));
         assertFalse(result.generatedPaths.isEmpty());
     }

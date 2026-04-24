@@ -112,7 +112,7 @@ class MikuIndexgenCliTest {
         assertTrue(stdout.contains("completed: 1 subdirectories processed"));
         assertFalse(stdout.contains("verbose: "));
         assertTrue(stderr.contains("verbose: scanning-dir=."));
-        assertTrue(stderr.contains("verbose: found-file=chapter1/a.md"));
+        assertTrue(stderr.contains("verbose: reading-file=chapter1/a.md"));
     }
 
     @Test
@@ -163,5 +163,32 @@ class MikuIndexgenCliTest {
         assertFalse(Files.exists(outDir.resolve(".hidden-child").resolve("index.json")));
         assertFalse(Files.exists(outDir.resolve("note.md")));
         assertTrue(stdout.contains("completed: 2 child directories processed"));
+    }
+
+    @Test
+    void runWritesVerboseLogsImmediatelyForChildDirectoryBatchMode() throws Exception {
+        Path parentDir = tempDir.resolve("parent");
+        Path child1 = parentDir.resolve("b1");
+        Path child2 = parentDir.resolve("b2");
+        Files.createDirectories(child1);
+        Files.createDirectories(child2);
+        Files.write(child1.resolve("a.md"), "# A\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(child2.resolve("b.md"), "# B\n".getBytes(StandardCharsets.UTF_8));
+
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+
+        int exitCode = new MikuIndexgenCli().run(
+                new String[] { "--input-parent-directory", parentDir.toString(), "--verbose" },
+                new PrintStream(stdoutBuffer, true, "UTF-8"),
+                new PrintStream(stderrBuffer, true, "UTF-8"));
+
+        String stdout = stdoutBuffer.toString("UTF-8");
+        String stderr = stderrBuffer.toString("UTF-8");
+
+        assertEquals(0, exitCode);
+        assertFalse(stdout.contains("verbose: "));
+        assertTrue(stderr.contains("verbose: reading-file=a.md"));
+        assertTrue(stderr.contains("verbose: reading-file=b.md"));
     }
 }

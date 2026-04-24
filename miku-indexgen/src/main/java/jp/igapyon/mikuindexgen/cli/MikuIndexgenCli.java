@@ -18,18 +18,20 @@ public class MikuIndexgenCli {
 
     public static void main(String[] args) {
         int exitCode = new MikuIndexgenCli().run(args, System.out, System.err);
-        if (exitCode != 0) {
-            System.exit(exitCode);
-        }
+        System.exit(exitCode);
     }
 
     public int run(String[] args, PrintStream out, PrintStream err) {
         try {
             CliOptions cliOptions = parseArgs(args);
-            IndexgenResult result = new Indexgen().createIndexes(IndexgenOptions.fromCliOptions(cliOptions));
+            IndexgenOptions options = IndexgenOptions.fromCliOptions(cliOptions);
+            options.verboseStream = cliOptions.verbose ? err : null;
+            IndexgenResult result = new Indexgen().createIndexes(options);
             for (String log : result.logs) {
                 if (isVerboseLog(log)) {
-                    err.println(log);
+                    if (options.verboseStream == null) {
+                        err.println(log);
+                    }
                 } else {
                     out.println(log);
                 }
