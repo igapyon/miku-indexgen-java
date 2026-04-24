@@ -85,7 +85,7 @@ public class Indexgen {
         result.jsonPath = outputPaths.jsonPath;
         result.markdownPath = outputPaths.markdownPath;
 
-        VerboseLogger logger = new VerboseLogger(options.verbose);
+        VerboseLogger logger = new VerboseLogger(options.verbose, options.verboseStream);
         Logging.logVerboseStart(options, inputDirectoryPath.toString(), outputPaths.jsonPath.toString(),
                 outputPaths.markdownPath == null ? null : outputPaths.markdownPath.toString(), logger);
 
@@ -228,6 +228,7 @@ public class Indexgen {
         childOptions.recursive = options.recursive;
         childOptions.overwrite = options.overwrite;
         childOptions.verbose = options.verbose;
+        childOptions.verboseStream = options.verboseStream;
         childOptions.includeExtensions = copyList(options.includeExtensions);
         childOptions.inputEncoding = options.inputEncoding;
         childOptions.outputEncoding = options.outputEncoding;
@@ -360,8 +361,8 @@ public class Indexgen {
 
         List<IndexFile> files = new ArrayList<IndexFile>();
         for (Path filePath : filteredFiles) {
+            logger.log("reading-file=" + PathUtils.toPosixPath(targetPath.relativize(filePath).toString()));
             IndexFile file = buildIndexFile(filePath, targetPath, options.inputEncoding, options.jsonSummaryPaths, timings);
-            logger.log("found-file=" + file.path);
             files.add(file);
         }
 

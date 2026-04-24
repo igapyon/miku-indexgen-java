@@ -66,4 +66,23 @@ class MikuIndexgenChildDirectoriesMojoTest {
         assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("b1").resolve("index.md")));
         assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("b2").resolve("index.json")));
     }
+
+    @Test
+    void executeWritesVerboseLogsThroughMojoLoggerForEachChildDirectoryWithoutDuplicatingBufferedLogs() throws Exception {
+        Path parentDir = tempDir.resolve("parent");
+        Files.createDirectories(parentDir.resolve("b1"));
+        Files.createDirectories(parentDir.resolve("b2"));
+        Files.write(parentDir.resolve("b1").resolve("sample.md"), "# Sample\n".getBytes("UTF-8"));
+        Files.write(parentDir.resolve("b2").resolve("other.md"), "# Other\n".getBytes("UTF-8"));
+
+        RecordingLog log = new RecordingLog();
+        MikuIndexgenChildDirectoriesMojo mojo = new MikuIndexgenChildDirectoriesMojo();
+        mojo.setLog(log);
+        mojo.setInputParentDirectory(parentDir.toFile());
+        mojo.setVerbose(true);
+        mojo.execute();
+
+        assertEquals(1, log.countInfoLine("verbose: reading-file=sample.md"));
+        assertEquals(1, log.countInfoLine("verbose: reading-file=other.md"));
+    }
 }

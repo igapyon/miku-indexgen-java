@@ -16,6 +16,7 @@ public class IndexgenOptions {
     public boolean recursive = true;
     public boolean overwrite = true;
     public boolean verbose;
+    public transient java.io.PrintStream verboseStream;
     public List<String> includeExtensions;
     public String inputEncoding = "utf8";
     public String outputEncoding = "utf8";

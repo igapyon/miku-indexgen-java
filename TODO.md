@@ -52,6 +52,7 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 ### Maven Plugin Tasks
 
 - Done: keep Maven plugin goals as thin adapters over the same runtime helper used by the CLI for directory / batch execution.
+- Done: change Maven plugin verbose / progress logging from buffered `IndexgenResult.logs` output to per-event logging through the Mojo logger, while keeping the shared core API usable from CLI and tests.
 - TODO: if directory / batch parameters are added or renamed, keep Maven vocabulary aligned with CLI vocabulary such as `inputDirectory`, `outputDirectory`, and `recursive`.
 - TODO: reject plugin parameter combinations that do not make sense together, and describe the same restrictions in README.
 - TODO: decide whether the current `index` goal remains the directory-oriented Java extension goal or whether a thinner single-input goal should be introduced separately.

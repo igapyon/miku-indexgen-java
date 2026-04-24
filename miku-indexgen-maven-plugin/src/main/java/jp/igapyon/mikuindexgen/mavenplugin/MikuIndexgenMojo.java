@@ -62,9 +62,13 @@ public class MikuIndexgenMojo extends AbstractMojo {
         }
 
         try {
-            IndexgenResult result = new Indexgen().createIndexes(toOptions());
+            IndexgenOptions options = toOptions();
+            options.verboseStream = verbose ? new MavenLogPrintStream(getLog()) : null;
+            IndexgenResult result = new Indexgen().createIndexes(options);
             for (String log : result.logs) {
-                getLog().info(log);
+                if (options.verboseStream == null || !isVerboseLog(log)) {
+                    getLog().info(log);
+                }
             }
             if (result.skipped()) {
                 getLog().info("skip: " + result.skippedOutputPath);
@@ -77,6 +81,10 @@ public class MikuIndexgenMojo extends AbstractMojo {
         } catch (Exception ex) {
             throw new MojoExecutionException("Failed to run miku-indexgen.", ex);
         }
+    }
+
+    private static boolean isVerboseLog(String log) {
+        return log != null && log.startsWith("verbose: ");
     }
 
     IndexgenOptions toOptions() {
