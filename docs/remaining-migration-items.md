@@ -84,7 +84,7 @@ Implemented initial units:
   - Produced `workplace/tmp/plugin-smoke/index.json`
   - Produced `workplace/tmp/plugin-smoke/index.md`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
-- `2026-04-22`: `docs/miku-straight-conversion-guide.md` updated to describe optional Maven plugin modules and the resulting multi-module layout
+- `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`
   - Reactor build success
   - Produced `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin.jar`

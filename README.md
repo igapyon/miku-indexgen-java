@@ -106,7 +106,8 @@ Available Maven plugin parameters:
 ## More Information
 
 - Development notes: `docs/development.md`
-- Straight conversion policy: `docs/miku-straight-conversion-guide.md`
+- Java application design: `docs/miku-soft-20-javaapp-design-v20260425.md`
+- Straight conversion policy: `docs/miku-soft-30-straight-conversion-v20260425.md`
 - Upstream class mapping: `docs/upstream-class-mapping.md`
 - Upstream test mapping: `docs/upstream-test-mapping.md`
 - Migration status: `docs/remaining-migration-items.md`

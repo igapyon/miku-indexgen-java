@@ -169,7 +169,9 @@ Use these documents together, depending on the task:
 
 - `README.md`
   - user-facing entry point
-- `docs/miku-straight-conversion-guide.md`
+- `docs/miku-soft-20-javaapp-design-v20260425.md`
+  - common Java application design for miku Java ports
+- `docs/miku-soft-30-straight-conversion-v20260425.md`
   - common straight conversion principles for miku Java ports
 - `docs/upstream-class-mapping.md`
   - `upstream file -> Java class` mapping
