@@ -89,6 +89,7 @@ java classes:
 notes:
   - Core API is intentionally independent of CLI argv parsing.
   - Maven plugin can call Indexgen.createIndexes(IndexgenOptions).
+  - JSON output formatting follows upstream `formatIndexJson` so each file entry is emitted as one search-friendly line.
 ```
 
 ```text

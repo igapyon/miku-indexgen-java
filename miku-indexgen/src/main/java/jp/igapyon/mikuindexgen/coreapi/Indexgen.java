@@ -35,31 +35,25 @@ public class Indexgen {
 
     public String buildIndexContent(String title, Path targetPath, List<IndexFile> files, Path outputPath,
             boolean includeGeneratorMetadata) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\n");
-
-        List<String> fields = new ArrayList<String>();
-        if (title != null) {
-            fields.add("  \"title\": " + quote(title));
-        }
-        if (includeGeneratorMetadata) {
-            fields.add("  \"generator\": " + quote(GENERATOR_NAME));
-        }
         String basePath = PathUtils.toPosixPath(outputPath.getParent().relativize(targetPath).toString());
         if (basePath.length() == 0) {
             basePath = ".";
         }
-        fields.add("  \"basePath\": " + quote(basePath));
-        fields.add("  \"files\": " + buildFilesJson(files));
+        return formatIndexJson(title, includeGeneratorMetadata ? GENERATOR_NAME : null, basePath, files);
+    }
 
-        for (int i = 0; i < fields.size(); i++) {
-            builder.append(fields.get(i));
-            if (i + 1 < fields.size()) {
-                builder.append(',');
-            }
-            builder.append('\n');
+    public String formatIndexJson(String title, String generator, String basePath, List<IndexFile> files) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\n");
+
+        if (title != null) {
+            builder.append(" \"title\": ").append(quote(title)).append(",\n");
         }
-
+        if (generator != null) {
+            builder.append(" \"generator\": ").append(quote(generator)).append(",\n");
+        }
+        builder.append(" \"basePath\": ").append(quote(basePath)).append(",\n");
+        builder.append(" \"files\": ").append(buildFilesJson(files)).append('\n');
         builder.append("}\n");
         return builder.toString();
     }
@@ -432,33 +426,27 @@ public class Indexgen {
 
     private String buildFilesJson(List<IndexFile> files) {
         StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        if (!files.isEmpty()) {
-            builder.append('\n');
-        }
+        builder.append("[\n");
 
         for (int i = 0; i < files.size(); i++) {
             IndexFile file = files.get(i);
-            builder.append("    {\n");
-            builder.append("      \"name\": ").append(quote(file.name)).append(",\n");
-            builder.append("      \"path\": ").append(quote(file.path)).append(",\n");
-            builder.append("      \"ext\": ").append(quote(file.ext)).append(",\n");
-            builder.append("      \"dir\": ").append(quote(file.dir)).append(",\n");
-            builder.append("      \"size\": ").append(file.size);
+            builder.append("  {");
+            builder.append(quote("name")).append(":").append(quote(file.name)).append(",");
+            builder.append(quote("path")).append(":").append(quote(file.path)).append(",");
+            builder.append(quote("ext")).append(":").append(quote(file.ext)).append(",");
+            builder.append(quote("dir")).append(":").append(quote(file.dir)).append(",");
+            builder.append(quote("size")).append(":").append(file.size);
             if (file.summary != null) {
-                builder.append(",\n");
-                builder.append("      \"summary\": ").append(quote(file.summary)).append('\n');
-            } else {
-                builder.append('\n');
+                builder.append(",").append(quote("summary")).append(":").append(quote(file.summary));
             }
-            builder.append("    }");
+            builder.append("}");
             if (i + 1 < files.size()) {
                 builder.append(',');
             }
             builder.append('\n');
         }
 
-        builder.append("  ]");
+        builder.append(" ]");
         return builder.toString();
     }
 
