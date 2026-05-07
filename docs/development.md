@@ -90,10 +90,11 @@ Rules:
 `mvn package` currently produces these main artifacts:
 
 - `miku-indexgen/target/miku-indexgen-1.1.0.jar`
+- `miku-indexgen/target/miku-indexgen-1.1.0-sources.jar`
 - `miku-indexgen/target/miku-indexgen-dist-1.1.0.zip`
 - `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.1.0.jar`
 
-The GitHub release workflow currently uploads the runtime jar artifact for end users.
+The GitHub release workflow currently uploads the runtime jar and runtime source jar artifacts for end users.
 
 ## Maven Plugin Notes
 
