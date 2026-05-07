@@ -38,6 +38,23 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ steps.release_tag.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_TAG#v}"
+          POM_VERSION="$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+
+          case "${VERSION}" in
+            "${POM_VERSION}"|"${POM_VERSION}".*) ;;
+            *)
+              echo "Release tag version (${VERSION}) must match pom.xml version (${POM_VERSION}) or add a dot suffix such as ${POM_VERSION}.2." >&2
+              exit 1
+              ;;
+          esac
+
       - name: Build runtime jar
         run: mvn -B package
 
