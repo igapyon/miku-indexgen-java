@@ -81,6 +81,8 @@ follow-up:
   - `2026-04-22`: jar smoke passed with Markdown output enabled.
   - `2026-04-22`: Maven plugin full-coordinate smoke passed.
   - Short prefix execution requires Maven plugin prefix resolution for the `jp.igapyon` plugin group.
+  - `2026-05-08`: fetched upstream `miku-indexgen` and followed `formatIndexJson` behavior from `origin/devel` so `index.json` file entries are emitted as one-line records.
+  - `2026-05-08`: `mvn test` passed.
 ```
 
 ```text

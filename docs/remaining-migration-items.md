@@ -83,6 +83,21 @@ Implemented initial units:
   - Build success
   - Produced `workplace/tmp/plugin-smoke/index.json`
   - Produced `workplace/tmp/plugin-smoke/index.md`
+- `2026-05-08`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local `devel` fast-forwarded to `origin/devel` at `d90fed3`
+  - Java side followed the upstream `formatIndexJson` behavior for search-friendly one-line file records in `index.json`
+- `2026-05-08`: `mvn test`
+  - Reactor build success
+  - Runtime tests run: 42
+  - Maven plugin tests run: 6
+- `2026-05-08`: Maven coordinates updated to `1.1.0` to follow upstream `miku-indexgen` `1.1.0`
+  - Parent: `jp.igapyon:miku-indexgen-java:1.1.0`
+  - Runtime: `jp.igapyon:miku-indexgen:1.1.0`
+  - Plugin: `jp.igapyon:miku-indexgen-maven-plugin:1.1.0`
+- `2026-05-08`: `mvn test`
+  - Reactor build success with version `1.1.0`
+  - Runtime tests run: 42
+  - Maven plugin tests run: 6
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

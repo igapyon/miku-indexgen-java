@@ -75,7 +75,7 @@ If you want to run the tool from Maven, configure `miku-indexgen-maven-plugin` i
 <plugin>
   <groupId>jp.igapyon</groupId>
   <artifactId>miku-indexgen-maven-plugin</artifactId>
-  <version>1.0.1</version>
+  <version>1.1.0</version>
   <configuration>
     <inputDirectory>${project.basedir}/docs</inputDirectory>
     <outputDirectory>${project.build.directory}/generated-index</outputDirectory>

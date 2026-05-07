@@ -41,9 +41,9 @@ class IndexgenTest {
         assertEquals(2, result.subdirectories);
         assertTrue(index.contains("\"generator\": \"miku-indexgen\""));
         assertTrue(index.contains("\"basePath\": \".\""));
-        assertTrue(index.contains("\"path\": \"chapter1/a.md\""));
-        assertTrue(index.contains("\"summary\": \"Workbook: sample.xlsx Second line\""));
-        assertTrue(index.contains("\"path\": \"root.md\""));
+        assertTrue(index.contains("\"path\":\"chapter1/a.md\""));
+        assertTrue(index.contains("\"summary\":\"Workbook: sample.xlsx Second line\""));
+        assertTrue(index.contains("\"path\":\"root.md\""));
         assertEquals(Arrays.asList("chapter1/a.md", "chapter1/nested/b.md", "chapter2/c.md", "chapter2/data.json", "root.md"),
                 paths(result.files));
     }
@@ -89,6 +89,64 @@ class IndexgenTest {
     }
 
     @Test
+    void buildIndexContentFormatsEachFileEntryOnOneLineForSearchFriendlyJson() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Path outDir = tempDir.resolve("out");
+        Files.createDirectories(outDir);
+
+        IndexFile first = new IndexFile();
+        first.name = "a.md";
+        first.path = "chapter1/a.md";
+        first.ext = "md";
+        first.dir = "chapter1";
+        first.size = 4;
+        first.summary = "A";
+
+        IndexFile second = new IndexFile();
+        second.name = "data.json";
+        second.path = "chapter2/data.json";
+        second.ext = "json";
+        second.dir = "chapter2";
+        second.size = 22;
+
+        String content = new Indexgen().buildIndexContent("Docs Index", docsDir,
+                Arrays.asList(first, second), outDir.resolve("index.json"), true);
+
+        assertEquals(String.join("\n", Arrays.asList(
+                "{",
+                " \"title\": \"Docs Index\",",
+                " \"generator\": \"miku-indexgen\",",
+                " \"basePath\": \"../docs\",",
+                " \"files\": [",
+                "  {\"name\":\"a.md\",\"path\":\"chapter1/a.md\",\"ext\":\"md\",\"dir\":\"chapter1\",\"size\":4,\"summary\":\"A\"},",
+                "  {\"name\":\"data.json\",\"path\":\"chapter2/data.json\",\"ext\":\"json\",\"dir\":\"chapter2\",\"size\":22}",
+                " ]",
+                "}",
+                "")), content);
+    }
+
+    @Test
+    void buildIndexContentEscapesLineBreaksInsideFileEntriesWithoutSplittingTheRecordLine() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Files.createDirectories(docsDir);
+
+        IndexFile file = new IndexFile();
+        file.name = "a.md";
+        file.path = "a.md";
+        file.ext = "md";
+        file.dir = "";
+        file.size = 12;
+        file.summary = "First line\nSecond line";
+
+        String content = new Indexgen().buildIndexContent(null, docsDir,
+                Arrays.asList(file), docsDir.resolve("index.json"), true);
+
+        assertTrue(content
+                .contains("  {\"name\":\"a.md\",\"path\":\"a.md\",\"ext\":\"md\",\"dir\":\"\",\"size\":12,\"summary\":\"First line\\nSecond line\"}"));
+        assertEquals(8, content.split("\n", -1).length);
+    }
+
+    @Test
     void createIndexesProcessesEachDirectChildDirectoryInChildDirectoryBatchMode() throws Exception {
         Path parentDir = tempDir.resolve("parent");
         Path child1 = parentDir.resolve("b1");
@@ -119,7 +177,7 @@ class IndexgenTest {
         assertFalse(Files.exists(parentDir.resolve("index.json")));
         assertFalse(Files.exists(parentDir.resolve(".hidden-child").resolve("index.json")));
         String child1Index = new String(Files.readAllBytes(child1.resolve("index.json")), "UTF-8");
-        assertTrue(child1Index.contains("\"path\": \"nested/deep.md\""));
+        assertTrue(child1Index.contains("\"path\":\"nested/deep.md\""));
     }
 
     @Test

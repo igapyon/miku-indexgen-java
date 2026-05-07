@@ -60,7 +60,7 @@ class MikuIndexgenMojoTest {
 
         assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("index.json")));
         assertTrue(Files.isRegularFile(tempDir.resolve("out").resolve("index.md")));
-        assertTrue(new String(Files.readAllBytes(tempDir.resolve("out").resolve("index.json")), "UTF-8").contains("\"summary\": \"Sample\""));
+        assertTrue(new String(Files.readAllBytes(tempDir.resolve("out").resolve("index.json")), "UTF-8").contains("\"summary\":\"Sample\""));
     }
 
     @Test
