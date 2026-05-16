@@ -11,37 +11,33 @@ This document covers:
 - local development commands
 - focused regression commands
 - local temporary workspace rules
-- Maven plugin development notes
+- separated Maven plugin repository notes
 - related project documents
 
 This document does not try to be the user-facing usage guide.
 
 ## Repository Structure
 
-This repository is a multi-module Maven reactor.
+This repository is a single-module runtime Maven project.
 
 - repository root
-  - aggregator project `miku-indexgen-java`
-- `miku-indexgen/`
   - runtime jar and CLI implementation
-- `miku-indexgen-maven-plugin/`
-  - Maven plugin implementation
 - `docs/`
   - migration, mapping, and development documents
 - `workplace/`
   - local upstream checkout and temporary local work area
 
-The runtime jar and the Maven plugin are separate deliverables, but both use the same core API.
+The Maven plugin is maintained in the separated `miku-indexgen-java-maven` repository.
 
 ## Core Design
 
 Index generation is centered on `Indexgen.createIndexes(IndexgenOptions)`.
 
 - CLI parses arguments and converts them into `IndexgenOptions`
-- Maven plugin maps plugin parameters into the same `IndexgenOptions`
-- directory traversal and child-directory batch behavior are shared in runtime-side code instead of being reimplemented in each adapter
+- directory traversal and child-directory batch behavior are shared in runtime-side code
+- the separated Maven plugin should remain a thin adapter over this runtime API
 
-This repository intentionally keeps CLI and Maven plugin layers thin.
+This repository intentionally keeps product behavior in the runtime module.
 
 ## Primary Commands
 
@@ -52,20 +48,12 @@ mvn test
 mvn package
 ```
 
-Useful Maven plugin smoke commands:
-
-```bash
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.2.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/plugin-out -Dmiku-indexgen.markdown=true
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.2.0:index-child-directories -Dmiku-indexgen.inputParentDirectory=workplace/tmp/parent-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/parent-out -Dmiku-indexgen.markdown=true
-```
-
 ## Focused Regression Commands
 
 Run targeted tests when working on a specific area:
 
 ```bash
 mvn test -Dtest=IndexgenTest
-mvn test -Dtest=MikuIndexgenMojoTest
 mvn test -Dtest=MarkdownTest
 mvn test -Dtest=JsonSummaryTest
 mvn test -Dtest=PathUtilsTest
@@ -89,62 +77,19 @@ Rules:
 
 `mvn package` currently produces these main artifacts:
 
-- `miku-indexgen/target/miku-indexgen-1.2.0.jar`
-- `miku-indexgen/target/miku-indexgen-1.2.0-sources.jar`
-- `miku-indexgen/target/miku-indexgen-dist-1.2.0.zip`
-- `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.2.0.jar`
+- `target/miku-indexgen-1.2.1.jar`
+- `target/miku-indexgen-1.2.1-sources.jar`
+- `target/miku-indexgen-dist-1.2.1.zip`
 
 The GitHub release workflow currently uploads the runtime jar and runtime source jar artifacts for end users.
 
 ## Maven Plugin Notes
 
-The Maven plugin is a first-class execution path, but lifecycle binding should remain opt-in.
+The Maven plugin is maintained separately:
 
-Recommended approach:
+- <https://github.com/igapyon/miku-indexgen-java-maven>
 
-- explicit execution first
-- lifecycle binding only in consuming projects that want automatic generation
-
-Full-coordinate execution works without plugin prefix resolution:
-
-```bash
-mvn jp.igapyon:miku-indexgen-maven-plugin:1.2.0:index
-```
-
-Short-form execution requires Maven plugin prefix resolution for the `jp.igapyon` plugin group:
-
-```bash
-mvn miku-indexgen:index
-```
-
-Minimal `pom.xml` example:
-
-```xml
-<plugin>
-  <groupId>jp.igapyon</groupId>
-  <artifactId>miku-indexgen-maven-plugin</artifactId>
-  <version>1.2.0</version>
-  <configuration>
-    <inputDirectory>${project.basedir}/docs</inputDirectory>
-    <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
-    <markdown>true</markdown>
-  </configuration>
-</plugin>
-```
-
-Optional lifecycle binding example:
-
-```xml
-<executions>
-  <execution>
-    <id>generate-docs-index</id>
-    <phase>generate-resources</phase>
-    <goals>
-      <goal>index</goal>
-    </goals>
-  </execution>
-</executions>
-```
+Maven plugin tests, smoke commands, plugin examples, plugin release work, and plugin-facing parameter documentation belong to that repository.
 
 ## Child-Directory Batch Mode
 

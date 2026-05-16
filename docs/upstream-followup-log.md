@@ -117,10 +117,10 @@ upstream file:
   Java-side Maven integration
 
 java classes:
-  jp.igapyon.mikuindexgen.mavenplugin.MikuIndexgenMojo
+  separated repository concern
 
 tests:
-  jp.igapyon.mikuindexgen.mavenplugin.MikuIndexgenMojoTest
+  separated repository concern
 
 diff summary:
   behavior diff:
@@ -130,10 +130,11 @@ diff summary:
   unmigrated diff:
     - Short prefix usage needs plugin prefix resolution documentation.
   Java-side extension:
-    - Adds `miku-indexgen-maven-plugin` module with `packaging=maven-plugin`.
+    - Maven plugin implementation is maintained in `miku-indexgen-java-maven`.
 
 follow-up:
   - `2026-04-22`: `mvn test` passed in the multi-module reactor.
   - `2026-04-22`: `mvn package` passed in the multi-module reactor.
   - `2026-04-22`: full-coordinate Maven plugin smoke passed.
+  - `2026-05-16`: Maven plugin implementation was separated to `miku-indexgen-java-maven`; this runtime repository now records Maven plugin checks as separated-repository concerns.
 ```

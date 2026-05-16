@@ -3,17 +3,20 @@
 ## Maven Plugin
 
 - Done: add a Maven plugin goal as a first-class execution path.
+- Done: separate Maven plugin ownership to `miku-indexgen-java-maven`.
+- Runtime repository responsibility is now the Java runtime, CLI, core API, runtime tests, and runtime release assets.
+- Maven plugin repository responsibility is plugin goals, parameters, Maven logging, plugin tests, examples, smoke scripts, and plugin release work.
 - Primary usage should be explicit execution:
 
 ```bash
-mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
+mvn jp.igapyon:miku-indexgen-maven-plugin:<version>:index
 ```
 
 - Do not bind the goal to a lifecycle phase by default.
 - Users who need automatic generation can opt in by binding the goal to a phase such as `generate-resources`.
 - Done: keep CLI and Maven plugin as thin wrappers over the same core API.
 - Done: add core-side `IndexgenOptions` / `IndexgenResult` before implementing the plugin so CLI arguments and Maven plugin parameters can map to the same execution contract.
-- Note: full-coordinate execution works without plugin prefix setup: `mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index`.
+- Note: full-coordinate execution works without plugin prefix setup: `mvn jp.igapyon:miku-indexgen-maven-plugin:<version>:index`.
 - Note: short execution `mvn miku-indexgen:index` requires Maven plugin prefix resolution for the `jp.igapyon` plugin group.
 - Use `workplace/tmp` for future manual smoke inputs and generated outputs where practical.
 - Done: update `docs/miku-straight-conversion-guide.md` so future miku Java ports can treat Maven plugin goals as a high-priority first-class execution path for CLI / batch style tools.
@@ -53,10 +56,9 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 
 - Done: keep Maven plugin goals as thin adapters over the same runtime helper used by the CLI for directory / batch execution.
 - Done: change Maven plugin verbose / progress logging from buffered `IndexgenResult.logs` output to per-event logging through the Mojo logger, while keeping the shared core API usable from CLI and tests.
-- TODO: if directory / batch parameters are added or renamed, keep Maven vocabulary aligned with CLI vocabulary such as `inputDirectory`, `outputDirectory`, and `recursive`.
-- TODO: reject plugin parameter combinations that do not make sense together, and describe the same restrictions in README.
-- TODO: decide whether the current `index` goal remains the directory-oriented Java extension goal or whether a thinner single-input goal should be introduced separately.
-- TODO: add regression tests that lock shared directory traversal, relative path handling, output naming, and conflict validation at the runtime-helper level, with plugin tests kept focused on parameter mapping and logging.
+- Done: move Maven plugin implementation and plugin-owned follow-ups to the separated `miku-indexgen-java-maven` repository.
+- TODO: keep runtime API behavior stable enough for the separated Maven plugin adapter.
+- TODO: add runtime-side regression tests that lock shared directory traversal, relative path handling, output naming, and conflict validation.
 
 ### Open Design Decisions
 
@@ -68,8 +70,8 @@ mvn jp.igapyon:miku-indexgen-maven-plugin:1.0.0:index
 ### Documentation Sync
 
 - TODO: update README so it explicitly distinguishes the straight-conversion core contract from Java-only directory / batch extensions.
-- TODO: update `docs/development.md` focused regression commands once directory / batch tests are split into core-helper, CLI, and Maven plugin layers.
-- TODO: keep future wording synchronized across README, CLI help, Maven plugin parameter docs, and regression notes so the same contract is described once and reused consistently.
+- Done: update `docs/development.md` so Maven plugin checks are treated as separated-repository concerns.
+- TODO: keep future wording synchronized across runtime README, CLI help, separated Maven plugin parameter docs, and regression notes so the same contract is described once and reused consistently.
 
 ### Upstream Follow-Up
 

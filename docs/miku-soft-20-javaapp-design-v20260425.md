@@ -721,24 +721,26 @@ Stable byte output lets users and AI agents answer:
 
 It scans a directory and generates `index.json`. When Markdown output is enabled, it also generates `index.md`.
 
-The Java version currently has two main execution paths.
+The Java runtime repository currently has one main execution path.
 
 - runtime jar / CLI
-- Maven plugin
+
+The Maven plugin is maintained separately in `miku-indexgen-java-maven`.
 
 The central core API is:
 
 - `jp.igapyon.mikuindexgen.coreapi.Indexgen.createIndexes(IndexgenOptions)`
 
-CLI and Maven plugin layers map their inputs into `IndexgenOptions` and call the same core API.
+The CLI maps its inputs into `IndexgenOptions` and calls the same core API.
+Separated adapters should use this same runtime contract.
 
 Important design points:
 
 - `index.json` is the primary structured output
 - `index.md` is optional companion output
-- directory scanning behavior is shared by CLI and Maven plugin through runtime-side code
+- directory scanning behavior is runtime-side code that separated adapters can reuse
 - verbose progress and timing information are kept separate from primary output
-- Maven plugin goals are Java-side extensions
+- Maven plugin goals are Java-side extensions maintained outside this runtime repository
 - child-directory batch mode is a Java-side extension and should not be confused with the upstream single-input contract
 - upstream class and test mappings are recorded under `docs/`
 
@@ -751,25 +753,24 @@ This mode is specific to `miku-indexgen-java` and should not be read as a cross-
 The current contract is as follows.
 
 - CLI option `--input-parent-directory <dir>` selects a parent directory
-- Maven plugin goal `index-child-directories` selects a parent directory through `inputParentDirectory`
+- the separated Maven plugin can expose this runtime behavior as a plugin goal
 - the parent directory itself is not indexed as one input base
 - each direct child directory under the parent is processed independently
 - direct child files under the parent are ignored
 - hidden child directories are skipped
 - recursive scanning still means recursion inside each selected child directory
-- when `--output-directory` or plugin `outputDirectory` is omitted, outputs are written under each child directory
+- when `--output-directory` is omitted, outputs are written under each child directory
 - when an output directory is specified, outputs are written under child-specific paths such as `<outputDirectory>/<child>/index.json`
 - the same core API, `Indexgen.createIndexes(IndexgenOptions)`, handles both single-directory mode and child-directory batch mode
 
 This feature exists because `miku-indexgen-java` is often useful for generating many small directory indexes in one Java process or Maven execution. It is therefore an operational extension on the Java side, not a change to the upstream `miku-indexgen` single-directory contract.
 
-The repository is a multi-module Maven reactor.
+The repository is a single-module Maven project.
 
-- root aggregator project
-- `miku-indexgen/` runtime jar and CLI implementation
-- `miku-indexgen-maven-plugin/` Maven plugin implementation
+- root `pom.xml`
+- root `src/` runtime jar and CLI implementation
 
-This shape is appropriate because the runtime jar and Maven plugin are separate deliverables but use the same core API.
+This shape is appropriate after Maven plugin separation because this repository owns the runtime jar, CLI, core API, runtime tests, and runtime release assets.
 
 ### Notes Specific to `mikuproject-java`
 

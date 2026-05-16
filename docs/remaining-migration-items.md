@@ -19,15 +19,13 @@ Implemented initial units:
 - `indexer.ts` core index generation
 - `logging.ts` verbose log accumulation
 - core-side `IndexgenOptions` / `IndexgenResult` shared by CLI and Maven plugin adapters
-- multi-module Maven structure
 - `miku-indexgen` runtime jar module
-- `miku-indexgen-maven-plugin` Maven plugin module
-- Maven plugin `index` goal
+- separated Maven plugin ownership in `miku-indexgen-java-maven`
 
 ## Pending
 
-- additional Maven plugin integration coverage as needed for future parameter expansion
-- short prefix execution documentation for `mvn miku-indexgen:index`
+- runtime-side regression coverage for shared behavior used by external adapters
+- keep separated Maven plugin documentation synchronized when runtime CLI contracts change
 
 ## Focused Regression
 
@@ -116,6 +114,31 @@ Implemented initial units:
   - Produced `miku-indexgen/target/miku-indexgen-1.2.0-sources.jar`
   - Produced `miku-indexgen/target/miku-indexgen-dist-1.2.0.zip`
   - Produced `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.2.0.jar`
+- `2026-05-16`: Maven plugin ownership separated to `miku-indexgen-java-maven`
+  - Runtime repository root reactor no longer includes `miku-indexgen-maven-plugin`
+  - Runtime repository docs point Maven plugin work to the separated repository
+  - Maven plugin tests and smoke are now separated-repository concerns
+- `2026-05-16`: `mvn test`
+  - Runtime reactor build success after Maven plugin module removal
+  - Runtime tests run: 49
+- `2026-05-16`: `mvn package`
+  - Runtime reactor build success after Maven plugin module removal
+  - Produced runtime jar and distribution zip under `miku-indexgen/target/`
+- `2026-05-16`: runtime repository layout flattened
+  - Root `pom.xml` now owns `jp.igapyon:miku-indexgen:1.2.0`
+  - Runtime sources moved from `miku-indexgen/src/` to root `src/`
+  - Runtime build outputs now use root `target/`
+- `2026-05-16`: `mvn test`
+  - Single-module runtime build success after layout flattening
+  - Runtime tests run: 49
+- `2026-05-16`: `mvn package`
+  - Single-module runtime build success after layout flattening
+  - Produced `target/miku-indexgen-1.2.0.jar`
+  - Produced `target/miku-indexgen-1.2.0-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.2.0.zip`
+- `2026-05-16`: patch version updated from `1.2.0` to `1.2.1`
+  - Runtime: `jp.igapyon:miku-indexgen:1.2.1`
+  - CLI version output: `miku-indexgen 1.2.1`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

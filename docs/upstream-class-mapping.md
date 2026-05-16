@@ -88,7 +88,7 @@ java classes:
 
 notes:
   - Core API is intentionally independent of CLI argv parsing.
-  - Maven plugin can call Indexgen.createIndexes(IndexgenOptions).
+  - Separated adapters can call Indexgen.createIndexes(IndexgenOptions).
   - JSON output formatting follows upstream `formatIndexJson` so each file entry is emitted as one search-friendly line.
 ```
 
@@ -97,12 +97,12 @@ upstream file:
   Java-side Maven integration
 
 java classes:
-  jp.igapyon.mikuindexgen.mavenplugin.MikuIndexgenMojo
+  separated repository concern
 
 notes:
   - Java-side extension.
-  - Provides Maven plugin goal `index`.
-  - Calls Indexgen.createIndexes(IndexgenOptions).
+  - Maven plugin implementation is maintained in `miku-indexgen-java-maven`.
+  - The plugin should call Indexgen.createIndexes(IndexgenOptions) from the runtime artifact.
 ```
 
 ```text
