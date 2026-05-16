@@ -94,11 +94,15 @@ upstream test / intent:
   Java-side Maven plugin integration
 
 java tests:
-  jp.igapyon.mikuindexgen.mavenplugin.MikuIndexgenMojoTest
+  separated repository concern
 
 fixtures:
-  temporary files from JUnit TempDir
+  maintained in `miku-indexgen-java-maven`
 
 focused regression:
-  mvn test -Dtest=MikuIndexgenMojoTest
+  run Maven plugin tests in `miku-indexgen-java-maven`
+
+notes:
+  - Maven plugin implementation, plugin tests, and plugin smoke are maintained in the separated repository.
+  - The plugin should call the runtime core API from `jp.igapyon:miku-indexgen`.
 ```

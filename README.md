@@ -69,39 +69,12 @@ Usage rule:
 
 ## Maven Plugin
 
-If you want to run the tool from Maven, configure `miku-indexgen-maven-plugin` in your project's `pom.xml`.
+The Maven plugin is maintained in the separated `miku-indexgen-java-maven` repository.
 
-```xml
-<plugin>
-  <groupId>jp.igapyon</groupId>
-  <artifactId>miku-indexgen-maven-plugin</artifactId>
-  <version>1.2.0</version>
-  <configuration>
-    <inputDirectory>${project.basedir}/docs</inputDirectory>
-    <outputDirectory>${project.build.directory}/generated-index</outputDirectory>
-    <markdown>true</markdown>
-  </configuration>
-</plugin>
-```
+- Maven plugin repository: <https://github.com/igapyon/miku-indexgen-java-maven>
+- Runtime artifact used by the plugin: `jp.igapyon:miku-indexgen`
 
-Available Maven plugin parameters:
-
-| Parameter | Default | Description |
-| --- | --- | --- |
-| `inputDirectory` | `${project.basedir}` | Directory to scan. |
-| `inputParentDirectory` | unset | Process each direct child directory under the specified parent directory. |
-| `outputDirectory` | unset | Directory to write outputs. When unset, outputs are written under the input directory or each child directory. |
-| `title` | unset | Optional root-level title in generated JSON. |
-| `markdown` | `false` | Also generate `index.md`. |
-| `includeGeneratorMetadata` | `true` | Include root-level `generator` metadata. |
-| `jsonSummaryPaths` | unset | JSON Pointer list used to extract JSON summaries. |
-| `recursive` | `true` | Recurse into nested subdirectories. |
-| `overwrite` | `true` | Overwrite existing output files. |
-| `verbose` | `false` | Emit verbose progress and timing logs. |
-| `includeExtensions` | `md`, `json` | File extensions to include. |
-| `inputEncoding` | `utf8` | Input text encoding. Supported values are `utf8` and `shift_jis`. |
-| `outputEncoding` | `utf8` | Output text encoding. Supported values are `utf8` and `shift_jis`. |
-| `skip` | `false` | Skip plugin execution. |
+This repository owns the Java runtime, CLI, core API, runtime tests, and runtime release assets.
 
 ## More Information
 
