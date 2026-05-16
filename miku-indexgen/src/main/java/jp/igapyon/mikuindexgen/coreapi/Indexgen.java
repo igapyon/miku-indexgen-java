@@ -19,6 +19,7 @@ import jp.igapyon.mikuindexgen.jsonsummary.JsonSummary;
 import jp.igapyon.mikuindexgen.logging.Logging;
 import jp.igapyon.mikuindexgen.logging.VerboseLogger;
 import jp.igapyon.mikuindexgen.markdown.Markdown;
+import jp.igapyon.mikuindexgen.markdown.Markdown.MarkdownFrontMatterResult;
 import jp.igapyon.mikuindexgen.model.IndexFile;
 import jp.igapyon.mikuindexgen.pathutils.PathUtils;
 
@@ -268,7 +269,6 @@ public class Indexgen {
         timings.statMs += elapsedMs(statStart);
 
         String ext = PathUtils.getFileExtension(filePath.toString());
-        String summary = readSummary(filePath, ext, jsonSummaryPaths, inputEncoding, timings);
 
         IndexFile file = new IndexFile();
         file.name = PathUtils.getFileName(filePath.toString());
@@ -277,30 +277,34 @@ public class Indexgen {
         file.dir = parent == null ? "" : PathUtils.toPosixPath(targetPath.relativize(parent).toString());
         file.ext = ext;
         file.size = size;
-        file.summary = summary;
+        if ("md".equals(ext)) {
+            readMarkdownIndexFields(filePath, inputEncoding, timings, file);
+        } else {
+            file.summary = readJsonSummaryIfConfigured(filePath, ext, jsonSummaryPaths, inputEncoding, timings);
+        }
         return file;
     }
 
-    private String readSummary(Path filePath, String ext, List<String> jsonSummaryPaths, String inputEncoding,
+    private String readJsonSummaryIfConfigured(Path filePath, String ext, List<String> jsonSummaryPaths, String inputEncoding,
             IndexgenTimings timings) throws IOException {
-        if ("md".equals(ext)) {
-            return readMarkdownSummary(filePath, inputEncoding, timings);
-        }
         if ("json".equals(ext) && jsonSummaryPaths != null && !jsonSummaryPaths.isEmpty()) {
             return readJsonSummary(filePath, inputEncoding, jsonSummaryPaths, timings);
         }
         return null;
     }
 
-    private String readMarkdownSummary(Path filePath, String inputEncoding, IndexgenTimings timings) throws IOException {
+    private void readMarkdownIndexFields(Path filePath, String inputEncoding, IndexgenTimings timings, IndexFile file)
+            throws IOException {
         long readFileStart = System.nanoTime();
         String content = Encoding.readTextFile(filePath, inputEncoding);
         timings.readFileMs += elapsedMs(readFileStart);
 
         long summaryStart = System.nanoTime();
-        String summary = Markdown.extractSummary(content);
+        MarkdownFrontMatterResult frontMatter = Markdown.extractFrontMatter(content);
+        file.title = frontMatter.metadata.title;
+        file.topics = frontMatter.metadata.topics;
+        file.summary = Markdown.extractSummaryFromBody(frontMatter.body);
         timings.summaryMs += elapsedMs(summaryStart);
-        return summary;
     }
 
     private String readJsonSummary(Path filePath, String inputEncoding, List<String> jsonSummaryPaths, IndexgenTimings timings)
@@ -436,6 +440,12 @@ public class Indexgen {
             builder.append(quote("ext")).append(":").append(quote(file.ext)).append(",");
             builder.append(quote("dir")).append(":").append(quote(file.dir)).append(",");
             builder.append(quote("size")).append(":").append(file.size);
+            if (file.title != null) {
+                builder.append(",").append(quote("title")).append(":").append(quote(file.title));
+            }
+            if (file.topics != null) {
+                builder.append(",").append(quote("topics")).append(":").append(buildStringArrayJson(file.topics));
+            }
             if (file.summary != null) {
                 builder.append(",").append(quote("summary")).append(":").append(quote(file.summary));
             }
@@ -447,6 +457,19 @@ public class Indexgen {
         }
 
         builder.append(" ]");
+        return builder.toString();
+    }
+
+    private String buildStringArrayJson(List<String> values) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) {
+                builder.append(",");
+            }
+            builder.append(quote(values.get(i)));
+        }
+        builder.append("]");
         return builder.toString();
     }
 

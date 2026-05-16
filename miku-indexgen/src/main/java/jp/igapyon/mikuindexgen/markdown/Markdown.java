@@ -10,6 +10,21 @@ public final class Markdown {
     private Markdown() {
     }
 
+    public static final class MarkdownFrontMatter {
+        public String title;
+        public List<String> topics;
+    }
+
+    public static final class MarkdownFrontMatterResult {
+        public String body;
+        public MarkdownFrontMatter metadata;
+
+        private MarkdownFrontMatterResult(String body, MarkdownFrontMatter metadata) {
+            this.body = body;
+            this.metadata = metadata;
+        }
+    }
+
     public static String sanitizeTextForIndex(String text) {
         String normalized = Normalizer.normalize(text, Normalizer.Form.NFC);
         StringBuilder builder = new StringBuilder();
@@ -49,7 +64,15 @@ public final class Markdown {
     }
 
     public static String extractSummary(String markdown, int maxLength) {
-        String[] lines = markdown.split("\\r?\\n", -1);
+        return extractSummaryFromBody(extractFrontMatter(markdown).body, maxLength);
+    }
+
+    public static String extractSummaryFromBody(String markdownBody) {
+        return extractSummaryFromBody(markdownBody, 256);
+    }
+
+    public static String extractSummaryFromBody(String markdownBody, int maxLength) {
+        String[] lines = markdownBody.split("\\r?\\n", -1);
         String firstNonEmptyLine = null;
 
         for (String rawLine : lines) {
@@ -97,6 +120,200 @@ public final class Markdown {
 
         String summary = body.length() > maxLength ? body.substring(0, maxLength) : body.toString();
         return sanitizeTextForIndex(summary);
+    }
+
+    public static MarkdownFrontMatterResult extractFrontMatter(String markdown) {
+        String normalizedMarkdown = markdown.startsWith("\uFEFF") ? markdown.substring(1) : markdown;
+        int firstLineEnd = findFirstLineEnd(normalizedMarkdown);
+        String firstLine = firstLineEnd == -1 ? normalizedMarkdown : normalizedMarkdown.substring(0, firstLineEnd);
+
+        if (!"---".equals(firstLine.trim())) {
+            return frontMatterResult(markdown, new MarkdownFrontMatter());
+        }
+
+        int contentStart = firstLineEnd == -1 ? normalizedMarkdown.length()
+                : firstLineEnd + lineSeparatorLength(normalizedMarkdown, firstLineEnd);
+        ClosingDelimiter closing = findClosingDelimiter(normalizedMarkdown, contentStart);
+        if (closing == null) {
+            return frontMatterResult(markdown, new MarkdownFrontMatter());
+        }
+
+        String frontMatter = normalizedMarkdown.substring(contentStart, closing.start);
+        int bodyStart = closing.end;
+        if (bodyStart < normalizedMarkdown.length()) {
+            if (normalizedMarkdown.charAt(bodyStart) == '\r'
+                    && bodyStart + 1 < normalizedMarkdown.length()
+                    && normalizedMarkdown.charAt(bodyStart + 1) == '\n') {
+                bodyStart += 2;
+            } else if (normalizedMarkdown.charAt(bodyStart) == '\n') {
+                bodyStart += 1;
+            }
+        }
+
+        return frontMatterResult(stripLeadingLineBreaks(normalizedMarkdown.substring(bodyStart)),
+                parseFrontMatterMetadata(frontMatter));
+    }
+
+    private static String stripLeadingLineBreaks(String value) {
+        int index = 0;
+        while (index < value.length()) {
+            char ch = value.charAt(index);
+            if (ch == '\r') {
+                index++;
+                if (index < value.length() && value.charAt(index) == '\n') {
+                    index++;
+                }
+                continue;
+            }
+            if (ch == '\n') {
+                index++;
+                continue;
+            }
+            break;
+        }
+        return value.substring(index);
+    }
+
+    private static MarkdownFrontMatterResult frontMatterResult(String body, MarkdownFrontMatter metadata) {
+        return new MarkdownFrontMatterResult(body, metadata);
+    }
+
+    private static int findFirstLineEnd(String text) {
+        int cr = text.indexOf('\r');
+        int lf = text.indexOf('\n');
+        if (cr == -1) {
+            return lf;
+        }
+        if (lf == -1) {
+            return cr;
+        }
+        return Math.min(cr, lf);
+    }
+
+    private static int lineSeparatorLength(String text, int lineEnd) {
+        return text.charAt(lineEnd) == '\r'
+                && lineEnd + 1 < text.length()
+                && text.charAt(lineEnd + 1) == '\n' ? 2 : 1;
+    }
+
+    private static final class ClosingDelimiter {
+        private final int start;
+        private final int end;
+
+        private ClosingDelimiter(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+
+    private static ClosingDelimiter findClosingDelimiter(String markdown, int contentStart) {
+        int lineStart = contentStart;
+        while (lineStart <= markdown.length()) {
+            int lineEnd = findLineEnd(markdown, lineStart);
+            String line = markdown.substring(lineStart, lineEnd);
+            if ("---".equals(line.trim())) {
+                return new ClosingDelimiter(lineStart, lineEnd);
+            }
+            if (lineEnd >= markdown.length()) {
+                break;
+            }
+            lineStart = lineEnd + lineSeparatorLength(markdown, lineEnd);
+        }
+        return null;
+    }
+
+    private static int findLineEnd(String text, int start) {
+        for (int i = start; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == '\r' || ch == '\n') {
+                return i;
+            }
+        }
+        return text.length();
+    }
+
+    private static MarkdownFrontMatter parseFrontMatterMetadata(String frontMatter) {
+        String[] lines = frontMatter.split("\\r?\\n", -1);
+        MarkdownFrontMatter metadata = new MarkdownFrontMatter();
+
+        for (int index = 0; index < lines.length; index++) {
+            String line = lines[index].trim();
+            if (line.length() == 0 || line.startsWith("#")) {
+                continue;
+            }
+
+            java.util.regex.Matcher titleMatcher = java.util.regex.Pattern.compile("^title:\\s*(.*)$").matcher(line);
+            if (titleMatcher.matches()) {
+                String title = sanitizeTextForIndex(unquoteFrontMatterValue(titleMatcher.group(1)));
+                if (title.length() > 0) {
+                    metadata.title = title;
+                }
+                continue;
+            }
+
+            java.util.regex.Matcher topicsMatcher = java.util.regex.Pattern.compile("^topics:\\s*(.*)$").matcher(line);
+            if (!topicsMatcher.matches()) {
+                continue;
+            }
+
+            List<String> inlineTopics = parseInlineTopics(topicsMatcher.group(1));
+            if (inlineTopics != null) {
+                metadata.topics = inlineTopics;
+                continue;
+            }
+
+            List<String> topics = new ArrayList<String>();
+            for (int topicIndex = index + 1; topicIndex < lines.length; topicIndex++) {
+                String topicLine = lines[topicIndex];
+                if (topicLine.trim().length() == 0) {
+                    continue;
+                }
+                java.util.regex.Matcher topicMatcher = java.util.regex.Pattern.compile("^\\s*-\\s+(.+)$").matcher(topicLine);
+                if (!topicMatcher.matches()) {
+                    break;
+                }
+                String topic = sanitizeTextForIndex(unquoteFrontMatterValue(topicMatcher.group(1)));
+                if (topic.length() > 0) {
+                    topics.add(topic);
+                }
+                index = topicIndex;
+            }
+
+            if (!topics.isEmpty()) {
+                metadata.topics = topics;
+            }
+        }
+
+        return metadata;
+    }
+
+    private static String unquoteFrontMatterValue(String value) {
+        String trimmed = value.trim();
+        if (trimmed.length() >= 2) {
+            char first = trimmed.charAt(0);
+            char last = trimmed.charAt(trimmed.length() - 1);
+            if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+                return trimmed.substring(1, trimmed.length() - 1).trim();
+            }
+        }
+        return trimmed;
+    }
+
+    private static List<String> parseInlineTopics(String value) {
+        String trimmed = value.trim();
+        if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
+            return null;
+        }
+
+        List<String> topics = new ArrayList<String>();
+        String content = trimmed.substring(1, trimmed.length() - 1);
+        for (String rawTopic : content.split(",")) {
+            String topic = sanitizeTextForIndex(unquoteFrontMatterValue(rawTopic));
+            if (topic.length() > 0) {
+                topics.add(topic);
+            }
+        }
+        return topics.isEmpty() ? null : topics;
     }
 
     public static String buildMarkdownIndexContent(List<IndexFile> files) {

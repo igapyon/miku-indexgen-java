@@ -23,8 +23,43 @@ class MarkdownTest {
     }
 
     @Test
+    void extractSummaryIgnoresFrontMatter() {
+        assertEquals("Body Title",
+                Markdown.extractSummary("---\ntitle: Front Matter Title\ntopics:\n  - writing\n---\n\n# Body Title\n"));
+    }
+
+    @Test
     void extractSummaryReturnsNullForBlankInput() {
         assertNull(Markdown.extractSummary("\n\n"));
+    }
+
+    @Test
+    void extractFrontMatterExtractsTitleAndTopics() {
+        Markdown.MarkdownFrontMatterResult result = Markdown
+                .extractFrontMatter("---\ntitle: Writing Guide\ntopics:\n  - writing\n  - article\n---\n\n# Body\n");
+
+        assertEquals("# Body\n", result.body);
+        assertEquals("Writing Guide", result.metadata.title);
+        assertEquals(java.util.Arrays.asList("writing", "article"), result.metadata.topics);
+    }
+
+    @Test
+    void extractFrontMatterExtractsQuotedTitleAndInlineTopics() {
+        Markdown.MarkdownFrontMatterResult result = Markdown
+                .extractFrontMatter("---\ntitle: \"Writing Guide\"\ntopics: [writing, \"article\"]\n---\n# Body\n");
+
+        assertEquals("Writing Guide", result.metadata.title);
+        assertEquals(java.util.Arrays.asList("writing", "article"), result.metadata.topics);
+    }
+
+    @Test
+    void extractFrontMatterTreatsUnclosedFrontMatterAsBodyText() {
+        String markdown = "---\ntitle: Writing Guide\n# Body\n";
+        Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter(markdown);
+
+        assertEquals(markdown, result.body);
+        assertNull(result.metadata.title);
+        assertNull(result.metadata.topics);
     }
 
     @Test

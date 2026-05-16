@@ -98,6 +98,24 @@ Implemented initial units:
   - Reactor build success with version `1.1.0`
   - Runtime tests run: 42
   - Maven plugin tests run: 6
+- `2026-05-16`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local `devel` fast-forwarded to `origin/devel` at `10efa60`
+  - Java side followed Markdown front matter `title` / `topics` extraction for `index.json` file entries
+  - Java side followed CLI `--version` / `-v`
+- `2026-05-16`: Maven coordinates updated to `1.2.0` to follow upstream `miku-indexgen` `v1.2.0`
+  - Parent: `jp.igapyon:miku-indexgen-java:1.2.0`
+  - Runtime: `jp.igapyon:miku-indexgen:1.2.0`
+  - Plugin: `jp.igapyon:miku-indexgen-maven-plugin:1.2.0`
+- `2026-05-16`: `mvn test`
+  - Reactor build success with version `1.2.0`
+  - Runtime tests run: 49
+  - Maven plugin tests run: 6
+- `2026-05-16`: `mvn package`
+  - Reactor build success with version `1.2.0`
+  - Produced `miku-indexgen/target/miku-indexgen-1.2.0.jar`
+  - Produced `miku-indexgen/target/miku-indexgen-1.2.0-sources.jar`
+  - Produced `miku-indexgen/target/miku-indexgen-dist-1.2.0.zip`
+  - Produced `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.2.0.jar`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`
