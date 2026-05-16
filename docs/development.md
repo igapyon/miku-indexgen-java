@@ -55,8 +55,8 @@ mvn package
 Useful Maven plugin smoke commands:
 
 ```bash
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.1.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/plugin-out -Dmiku-indexgen.markdown=true
-mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.1.0:index-child-directories -Dmiku-indexgen.inputParentDirectory=workplace/tmp/parent-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/parent-out -Dmiku-indexgen.markdown=true
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.2.0:index -Dmiku-indexgen.inputDirectory=workplace/tmp/plugin-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/plugin-out -Dmiku-indexgen.markdown=true
+mvn -N jp.igapyon:miku-indexgen-maven-plugin:1.2.0:index-child-directories -Dmiku-indexgen.inputParentDirectory=workplace/tmp/parent-smoke -Dmiku-indexgen.outputDirectory=workplace/tmp/parent-out -Dmiku-indexgen.markdown=true
 ```
 
 ## Focused Regression Commands
@@ -89,10 +89,10 @@ Rules:
 
 `mvn package` currently produces these main artifacts:
 
-- `miku-indexgen/target/miku-indexgen-1.1.0.jar`
-- `miku-indexgen/target/miku-indexgen-1.1.0-sources.jar`
-- `miku-indexgen/target/miku-indexgen-dist-1.1.0.zip`
-- `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.1.0.jar`
+- `miku-indexgen/target/miku-indexgen-1.2.0.jar`
+- `miku-indexgen/target/miku-indexgen-1.2.0-sources.jar`
+- `miku-indexgen/target/miku-indexgen-dist-1.2.0.zip`
+- `miku-indexgen-maven-plugin/target/miku-indexgen-maven-plugin-1.2.0.jar`
 
 The GitHub release workflow currently uploads the runtime jar and runtime source jar artifacts for end users.
 
@@ -108,7 +108,7 @@ Recommended approach:
 Full-coordinate execution works without plugin prefix resolution:
 
 ```bash
-mvn jp.igapyon:miku-indexgen-maven-plugin:1.1.0:index
+mvn jp.igapyon:miku-indexgen-maven-plugin:1.2.0:index
 ```
 
 Short-form execution requires Maven plugin prefix resolution for the `jp.igapyon` plugin group:
@@ -123,7 +123,7 @@ Minimal `pom.xml` example:
 <plugin>
   <groupId>jp.igapyon</groupId>
   <artifactId>miku-indexgen-maven-plugin</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <configuration>
     <inputDirectory>${project.basedir}/docs</inputDirectory>
     <outputDirectory>${project.build.directory}/generated-index</outputDirectory>

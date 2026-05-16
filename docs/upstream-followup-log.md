@@ -83,6 +83,8 @@ follow-up:
   - Short prefix execution requires Maven plugin prefix resolution for the `jp.igapyon` plugin group.
   - `2026-05-08`: fetched upstream `miku-indexgen` and followed `formatIndexJson` behavior from `origin/devel` so `index.json` file entries are emitted as one-line records.
   - `2026-05-08`: `mvn test` passed.
+  - `2026-05-16`: fetched upstream `miku-indexgen` and followed Markdown front matter `title` / `topics` extraction from `origin/devel` through `10efa60`.
+  - `2026-05-16`: added Java CLI `--version` / `-v` handling to follow upstream `v1.2.0`.
 ```
 
 ```text

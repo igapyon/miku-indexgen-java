@@ -68,6 +68,26 @@ class MikuIndexgenCliTest {
     }
 
     @Test
+    void parseArgsSignalsVersionRequestsWithoutRequiringAnInputDirectory() {
+        assertThrows(VersionRequestedException.class, () -> MikuIndexgenCli.parseArgs(new String[] { "--version" }));
+    }
+
+    @Test
+    void runPrintsVersion() throws Exception {
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+
+        int exitCode = new MikuIndexgenCli().run(
+                new String[] { "--version" },
+                new PrintStream(stdoutBuffer, true, "UTF-8"),
+                new PrintStream(stderrBuffer, true, "UTF-8"));
+
+        assertEquals(0, exitCode);
+        assertEquals("miku-indexgen 1.2.0\n", stdoutBuffer.toString("UTF-8"));
+        assertEquals("", stderrBuffer.toString("UTF-8"));
+    }
+
+    @Test
     void parseArgsParsesTheInputParentDirectory() {
         CliOptions options = MikuIndexgenCli.parseArgs(new String[] {
                 "--input-parent-directory", "./parent",

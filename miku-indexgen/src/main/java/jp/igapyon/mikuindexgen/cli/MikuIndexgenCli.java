@@ -11,6 +11,7 @@ import jp.igapyon.mikuindexgen.coreapi.IndexgenResult;
 import jp.igapyon.mikuindexgen.encoding.Encoding;
 import jp.igapyon.mikuindexgen.jsonsummary.JsonSummary;
 import jp.igapyon.mikuindexgen.model.CliOptions;
+import jp.igapyon.mikuindexgen.version.Version;
 
 public class MikuIndexgenCli {
     private static final String[] DEFAULT_INCLUDE_EXTENSIONS = new String[] { "md", "json" };
@@ -51,6 +52,9 @@ public class MikuIndexgenCli {
             return 0;
         } catch (HelpRequestedException ex) {
             printHelp(out);
+            return 0;
+        } catch (VersionRequestedException ex) {
+            out.println("miku-indexgen " + Version.VERSION);
             return 0;
         } catch (Exception ex) {
             err.println("error: " + ex.getMessage());
@@ -181,6 +185,12 @@ public class MikuIndexgenCli {
             if ("--help".equals(arg) || "-h".equals(arg)) {
                 throw new HelpRequestedException();
             }
+
+            if ("--version".equals(arg) || "-v".equals(arg)) {
+                throw new VersionRequestedException();
+            }
+
+            throw new IllegalArgumentException("Unknown argument: " + arg);
         }
 
         if (hasValue(options.inputDirectory) && hasValue(options.inputParentDirectory)) {
@@ -200,6 +210,7 @@ public class MikuIndexgenCli {
                 + "  Generate root JSON indexes for one input directory or for each direct child\n"
                 + "  directory under an input parent directory. Output files are written under\n"
                 + "  the selected output directory or input directory by default.\n"
+                + "  Use --version to print the CLI version.\n"
                 + "  Supported encodings: utf8, shift_jis\n");
     }
 

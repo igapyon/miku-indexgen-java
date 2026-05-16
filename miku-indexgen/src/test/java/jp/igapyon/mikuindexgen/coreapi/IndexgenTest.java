@@ -126,6 +126,34 @@ class IndexgenTest {
     }
 
     @Test
+    void createIndexesIncludesMarkdownFrontMatterTitleAndTopicsInFileEntries() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+
+        Files.createDirectories(docsDir);
+        Files.write(docsDir.resolve("writing-guide.md"),
+                ("---\n"
+                        + "title: Writing Guide\n"
+                        + "topics:\n"
+                        + "  - writing\n"
+                        + "  - article\n"
+                        + "  - tone\n"
+                        + "---\n"
+                        + "\n"
+                        + "# Body Title\n").getBytes("UTF-8"));
+
+        IndexgenOptions options = defaultOptions(docsDir);
+        IndexgenResult result = new Indexgen().createIndexes(options);
+
+        String index = new String(Files.readAllBytes(docsDir.resolve("index.json")), "UTF-8");
+        assertEquals("Writing Guide", result.files.get(0).title);
+        assertEquals(Arrays.asList("writing", "article", "tone"), result.files.get(0).topics);
+        assertEquals("Body Title", result.files.get(0).summary);
+        assertTrue(index.contains("\"title\":\"Writing Guide\""));
+        assertTrue(index.contains("\"topics\":[\"writing\",\"article\",\"tone\"]"));
+        assertTrue(index.contains("\"summary\":\"Body Title\""));
+    }
+
+    @Test
     void buildIndexContentEscapesLineBreaksInsideFileEntriesWithoutSplittingTheRecordLine() throws Exception {
         Path docsDir = tempDir.resolve("docs");
         Files.createDirectories(docsDir);
