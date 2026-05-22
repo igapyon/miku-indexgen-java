@@ -30,8 +30,19 @@ This generates:
 - `out/index.md`
 
 When `--output-directory` is omitted, outputs are written under `inputDirectory`.
+Generated `index.json` includes generation metadata so the same index can be refreshed later.
+
+Refresh an existing generated index:
+
+```bash
+java -jar miku-indexgen-<version>.jar \
+  --refresh-index out/index.json
+```
 
 ## Batch Mode
+
+`--input-parent-directory` is a Java runtime extension for child-directory batch processing.
+It is separate from the upstream Node.js runtime's single input directory mode.
 
 Process each direct child directory under a parent directory:
 
@@ -44,6 +55,8 @@ java -jar miku-indexgen-<version>.jar \
 
 In this mode, each direct child directory is processed independently.
 When `--output-directory` is specified, outputs are written under child-specific paths such as `out/<child>/index.json`.
+If one child directory fails, the remaining child directories are still processed.
+The command reports failed children to `stderr` and exits with a non-zero status when any child fails.
 
 ## CLI Options
 
@@ -51,6 +64,7 @@ When `--output-directory` is specified, outputs are written under child-specific
 | --- | --- |
 | `--input-directory <dir>` | Directory to scan. |
 | `--input-parent-directory <dir>` | Process each direct child directory under the specified parent directory. |
+| `--refresh-index <index.json>` | Regenerate an existing index from its generation metadata. |
 | `--output-directory <dir>` | Directory to write `index.json` and optional `index.md`. When omitted, outputs are written under the input directory. |
 | `--title <text>` | Add a root-level title to generated JSON. |
 | `--markdown` | Also generate `index.md`. |
@@ -65,7 +79,10 @@ When `--output-directory` is specified, outputs are written under child-specific
 
 Usage rule:
 
-- specify either `--input-directory` or `--input-parent-directory`
+- specify exactly one input mode: `--input-directory`, `--input-parent-directory`, or `--refresh-index`
+- `--no-recursive` controls scanning inside each selected input base; it does not change how child directories are selected in batch mode
+- child-directory batch mode aggregates child failures and exits non-zero when any child fails
+- outputs may be written under the input directory by default; the current run's `index.json` and optional `index.md` are excluded from `files[]`
 
 ## Maven Plugin
 
@@ -79,8 +96,10 @@ This repository owns the Java runtime, CLI, core API, runtime tests, and runtime
 ## More Information
 
 - Development notes: `docs/development.md`
-- Java application design: `docs/miku-soft-20-javaapp-design-v20260425.md`
-- Straight conversion policy: `docs/miku-soft-30-straight-conversion-v20260425.md`
+- miku-soft shared reference: `docs/miku-soft-reference.md`
+- Input files specification: `docs/input-files-spec.md`
+- Generated `index.json` specification: `docs/index-json-spec.md`
+- Markdown front matter specification: `docs/miku-indexgen-frontmatter-spec.md`
 - Upstream class mapping: `docs/upstream-class-mapping.md`
 - Upstream test mapping: `docs/upstream-test-mapping.md`
 - Migration status: `docs/remaining-migration-items.md`

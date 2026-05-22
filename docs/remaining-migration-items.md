@@ -139,6 +139,34 @@ Implemented initial units:
 - `2026-05-16`: patch version updated from `1.2.0` to `1.2.1`
   - Runtime: `jp.igapyon:miku-indexgen:1.2.1`
   - CLI version output: `miku-indexgen 1.2.1`
+- `2026-05-22`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local upstream `origin/devel` advanced to `07064d0`
+  - Upstream tags `v1.3.0` and `v1.3.0.1` were observed
+  - Java side followed upstream `1.3.0` runtime behavior for generation metadata, refresh index, and documented Markdown front matter metadata fields
+- `2026-05-22`: repository docs reorganized
+  - Removed copied shared miku-soft design documents from this repository
+  - Added `docs/miku-soft-reference.md` as the shared reference entry point
+  - Copied upstream product-specific docs for input files, generated `index.json`, and Markdown front matter
+- `2026-05-22`: Maven coordinates updated to `1.3.0` to follow upstream `miku-indexgen` `1.3.0`
+  - Runtime: `jp.igapyon:miku-indexgen:1.3.0`
+  - CLI version output: `miku-indexgen 1.3.0`
+- `2026-05-22`: `mvn test`
+  - Single-module runtime build success
+  - Runtime tests run: 54
+- `2026-05-22`: `mvn package`
+  - Single-module runtime build success with version `1.3.0`
+  - Produced `target/miku-indexgen-1.3.0.jar`
+  - Produced `target/miku-indexgen-1.3.0-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.3.0.zip`
+- `2026-05-22`: separated Maven plugin repository follow-up
+  - Updated local `../miku-indexgen-java-maven` references from `1.2.1` to `1.3.0`
+  - Documented generation metadata behavior and kept refresh behavior as runtime CLI-owned
+  - `mvn install` passed in this runtime repository
+  - `mvn test`, `mvn package`, and `sh scripts/smoke-maven-plugin.sh` passed in `../miku-indexgen-java-maven`
+  - `rg` found no active `1.2.1` references outside excluded generated/workplace paths
+- `2026-05-22`: copied product-specific docs checked against upstream `origin/devel` `07064d0`
+  - `docs/miku-indexgen-frontmatter-spec.md` matched upstream
+  - `docs/input-files-spec.md` and `docs/index-json-spec.md` differed only in Java companion repository context wording near the top of the document
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

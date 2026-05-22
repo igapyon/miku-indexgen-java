@@ -77,9 +77,9 @@ Rules:
 
 `mvn package` currently produces these main artifacts:
 
-- `target/miku-indexgen-1.2.1.jar`
-- `target/miku-indexgen-1.2.1-sources.jar`
-- `target/miku-indexgen-dist-1.2.1.zip`
+- `target/miku-indexgen-1.3.0.jar`
+- `target/miku-indexgen-1.3.0-sources.jar`
+- `target/miku-indexgen-dist-1.3.0.zip`
 
 The GitHub release workflow currently uploads the runtime jar and runtime source jar artifacts for end users.
 
@@ -105,7 +105,7 @@ Current contract:
 - `recursive` still means recursion inside each selected child base directory
 - when `outputDirectory` is omitted, outputs are written under each child directory
 - when `outputDirectory` is specified, outputs are written under child-specific paths such as `<outputDirectory>/<child>/index.json`
-- current behavior stops on the first child failure
+- child failures are aggregated, remaining children continue processing, and CLI execution exits non-zero when any child fails
 
 This is a Java-side extension contract and should not be confused with the upstream-facing single-input contract discussion.
 
@@ -115,10 +115,14 @@ Use these documents together, depending on the task:
 
 - `README.md`
   - user-facing entry point
-- `docs/miku-soft-20-javaapp-design-v20260425.md`
-  - common Java application design for miku Java ports
-- `docs/miku-soft-30-straight-conversion-v20260425.md`
-  - common straight conversion principles for miku Java ports
+- `docs/miku-soft-reference.md`
+  - shared miku-soft reference entry point
+- `docs/input-files-spec.md`
+  - input directory, file, metadata, and scan behavior
+- `docs/index-json-spec.md`
+  - generated `index.json` structure and maintenance rules
+- `docs/miku-indexgen-frontmatter-spec.md`
+  - Markdown front matter metadata policy
 - `docs/upstream-class-mapping.md`
   - `upstream file -> Java class` mapping
 - `docs/upstream-test-mapping.md`

@@ -9,6 +9,7 @@ public class IndexgenOptions {
     public String inputDirectory;
     public String inputParentDirectory;
     public String outputDirectory;
+    public String refreshIndex;
     public String title;
     public boolean markdownOutput;
     public Boolean includeGeneratorMetadata = Boolean.TRUE;
@@ -32,6 +33,7 @@ public class IndexgenOptions {
         options.inputDirectory = cliOptions.inputDirectory;
         options.inputParentDirectory = cliOptions.inputParentDirectory;
         options.outputDirectory = cliOptions.outputDirectory;
+        options.refreshIndex = cliOptions.refreshIndex;
         options.title = cliOptions.title;
         options.markdownOutput = cliOptions.markdownOutput;
         options.includeGeneratorMetadata = cliOptions.includeGeneratorMetadata;

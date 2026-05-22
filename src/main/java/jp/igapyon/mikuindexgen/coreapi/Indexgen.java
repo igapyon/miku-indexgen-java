@@ -20,6 +20,7 @@ import jp.igapyon.mikuindexgen.logging.Logging;
 import jp.igapyon.mikuindexgen.logging.VerboseLogger;
 import jp.igapyon.mikuindexgen.markdown.Markdown;
 import jp.igapyon.mikuindexgen.markdown.Markdown.MarkdownFrontMatterResult;
+import jp.igapyon.mikuindexgen.model.GenerationMetadata;
 import jp.igapyon.mikuindexgen.model.IndexFile;
 import jp.igapyon.mikuindexgen.pathutils.PathUtils;
 
@@ -36,30 +37,30 @@ public class Indexgen {
 
     public String buildIndexContent(String title, Path targetPath, List<IndexFile> files, Path outputPath,
             boolean includeGeneratorMetadata) {
+        return buildIndexContent(title, targetPath, files, outputPath, includeGeneratorMetadata, null);
+    }
+
+    public String buildIndexContent(String title, Path targetPath, List<IndexFile> files, Path outputPath,
+            boolean includeGeneratorMetadata, GenerationMetadata generation) {
         String basePath = PathUtils.toPosixPath(outputPath.getParent().relativize(targetPath).toString());
         if (basePath.length() == 0) {
             basePath = ".";
         }
-        return formatIndexJson(title, includeGeneratorMetadata ? GENERATOR_NAME : null, basePath, files);
+        return formatIndexJson(title, includeGeneratorMetadata ? GENERATOR_NAME : null, generation, basePath, files);
     }
 
     public String formatIndexJson(String title, String generator, String basePath, List<IndexFile> files) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{\n");
+        return formatIndexJson(title, generator, null, basePath, files);
+    }
 
-        if (title != null) {
-            builder.append(" \"title\": ").append(quote(title)).append(",\n");
-        }
-        if (generator != null) {
-            builder.append(" \"generator\": ").append(quote(generator)).append(",\n");
-        }
-        builder.append(" \"basePath\": ").append(quote(basePath)).append(",\n");
-        builder.append(" \"files\": ").append(buildFilesJson(files)).append('\n');
-        builder.append("}\n");
-        return builder.toString();
+    public String formatIndexJson(String title, String generator, GenerationMetadata generation, String basePath, List<IndexFile> files) {
+        return IndexJsonFormatter.format(title, generator, generation, basePath, files);
     }
 
     public IndexgenResult createIndexes(IndexgenOptions options) throws IOException {
+        if (options != null && hasValue(options.refreshIndex)) {
+            return refreshIndex(options);
+        }
         validateInputMode(options);
         if (hasValue(options.inputParentDirectory)) {
             return createIndexesForChildDirectories(options);
@@ -120,16 +121,32 @@ public class Indexgen {
         for (Path childDirectory : childDirectories) {
             IndexgenOptions childOptions = copyOptionsForChildDirectory(options, childDirectory,
                     resolveChildOutputDirectory(sharedOutputDirectory, childDirectory));
-            IndexgenResult childResult = createIndexesForSingleInputDirectory(childOptions);
-            result.files.addAll(childResult.files);
-            result.generatedPaths.addAll(childResult.generatedPaths);
-            result.logs.addAll(childResult.logs);
-            if (childResult.skipped()) {
-                result.logs.add("skip: " + childResult.skippedOutputPath);
+            try {
+                IndexgenResult childResult = createIndexesForSingleInputDirectory(childOptions);
+                result.files.addAll(childResult.files);
+                result.generatedPaths.addAll(childResult.generatedPaths);
+                result.logs.addAll(childResult.logs);
+                if (childResult.skipped()) {
+                    result.logs.add("skip: " + childResult.skippedOutputPath);
+                }
+            } catch (IOException ex) {
+                recordChildDirectoryFailure(result, childDirectory, ex);
+            } catch (RuntimeException ex) {
+                recordChildDirectoryFailure(result, childDirectory, ex);
             }
         }
 
+        if (result.failed()) {
+            throw new IndexgenBatchException(result);
+        }
         return result;
+    }
+
+    private void recordChildDirectoryFailure(IndexgenResult result, Path childDirectory, Exception ex) {
+        result.childDirectoriesFailed++;
+        result.failedChildDirectories.add(childDirectory);
+        String message = ex.getMessage();
+        result.childFailureMessages.add(childDirectory + ": " + (message == null ? ex.getClass().getName() : message));
     }
 
     private void validateInputMode(IndexgenOptions options) {
@@ -302,7 +319,14 @@ public class Indexgen {
         long summaryStart = System.nanoTime();
         MarkdownFrontMatterResult frontMatter = Markdown.extractFrontMatter(content);
         file.title = frontMatter.metadata.title;
+        file.description = frontMatter.metadata.description;
         file.topics = frontMatter.metadata.topics;
+        file.category = frontMatter.metadata.category;
+        file.status = frontMatter.metadata.status;
+        file.audience = frontMatter.metadata.audience;
+        file.created = frontMatter.metadata.created;
+        file.updated = frontMatter.metadata.updated;
+        file.sources = frontMatter.metadata.sources;
         file.summary = Markdown.extractSummaryFromBody(frontMatter.body);
         timings.summaryMs += elapsedMs(summaryStart);
     }
@@ -379,7 +403,8 @@ public class Indexgen {
 
         long jsonStringifyStart = System.nanoTime();
         String jsonContent = buildIndexContent(options.title, targetPath, files, outputPaths.jsonPath,
-                !Boolean.FALSE.equals(options.includeGeneratorMetadata));
+                !Boolean.FALSE.equals(options.includeGeneratorMetadata),
+                Generation.buildGenerationMetadata(options, targetPath, outputPaths.jsonPath));
         result.timings.jsonStringifyMs = elapsedMs(jsonStringifyStart);
 
         long jsonWriteStart = System.nanoTime();
@@ -395,6 +420,14 @@ public class Indexgen {
         Encoding.writeTextFile(outputPaths.markdownPath, Markdown.buildMarkdownIndexContent(files), options.outputEncoding);
         result.timings.markdownMs = elapsedMs(markdownStart);
         result.generatedPaths.add(outputPaths.markdownPath);
+    }
+
+    public IndexgenResult refreshIndex(IndexgenOptions options) throws IOException {
+        if (!hasValue(options.refreshIndex)) {
+            throw new IllegalArgumentException("Please specify an index.json path for --refresh-index.");
+        }
+        Path indexPath = Paths.get(options.refreshIndex).toAbsolutePath().normalize();
+        return createIndexesForSingleInputDirectory(Generation.buildRefreshOptions(options, indexPath));
     }
 
     private List<Path> listVisibleEntries(Path dirPath) throws IOException {
@@ -426,91 +459,6 @@ public class Indexgen {
             int result = JAPANESE_COLLATOR.compare(a, b);
             return result != 0 ? result : a.compareTo(b);
         }
-    }
-
-    private String buildFilesJson(List<IndexFile> files) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[\n");
-
-        for (int i = 0; i < files.size(); i++) {
-            IndexFile file = files.get(i);
-            builder.append("  {");
-            builder.append(quote("name")).append(":").append(quote(file.name)).append(",");
-            builder.append(quote("path")).append(":").append(quote(file.path)).append(",");
-            builder.append(quote("ext")).append(":").append(quote(file.ext)).append(",");
-            builder.append(quote("dir")).append(":").append(quote(file.dir)).append(",");
-            builder.append(quote("size")).append(":").append(file.size);
-            if (file.title != null) {
-                builder.append(",").append(quote("title")).append(":").append(quote(file.title));
-            }
-            if (file.topics != null) {
-                builder.append(",").append(quote("topics")).append(":").append(buildStringArrayJson(file.topics));
-            }
-            if (file.summary != null) {
-                builder.append(",").append(quote("summary")).append(":").append(quote(file.summary));
-            }
-            builder.append("}");
-            if (i + 1 < files.size()) {
-                builder.append(',');
-            }
-            builder.append('\n');
-        }
-
-        builder.append(" ]");
-        return builder.toString();
-    }
-
-    private String buildStringArrayJson(List<String> values) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                builder.append(",");
-            }
-            builder.append(quote(values.get(i)));
-        }
-        builder.append("]");
-        return builder.toString();
-    }
-
-    private String quote(String value) {
-        StringBuilder builder = new StringBuilder();
-        builder.append('"');
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
-            switch (ch) {
-                case '"':
-                    builder.append("\\\"");
-                    break;
-                case '\\':
-                    builder.append("\\\\");
-                    break;
-                case '\b':
-                    builder.append("\\b");
-                    break;
-                case '\f':
-                    builder.append("\\f");
-                    break;
-                case '\n':
-                    builder.append("\\n");
-                    break;
-                case '\r':
-                    builder.append("\\r");
-                    break;
-                case '\t':
-                    builder.append("\\t");
-                    break;
-                default:
-                    if (ch < 0x20) {
-                        builder.append(String.format("\\u%04x", (int) ch));
-                    } else {
-                        builder.append(ch);
-                    }
-                    break;
-            }
-        }
-        builder.append('"');
-        return builder.toString();
     }
 
     private double elapsedMs(long startNanos) {

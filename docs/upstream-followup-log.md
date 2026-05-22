@@ -31,8 +31,8 @@ upstream file:
   workplace/miku-indexgen/src/json-summary.ts
 
 java classes:
+  jp.igapyon.mikuindexgen.json.JsonParser
   jp.igapyon.mikuindexgen.jsonsummary.JsonSummary
-  jp.igapyon.mikuindexgen.jsonsummary.Parser
 
 tests:
   jp.igapyon.mikuindexgen.jsonsummary.JsonSummaryTest
@@ -41,11 +41,11 @@ diff summary:
   behavior diff:
     - No known intentional behavior difference in the covered JSON summary cases.
   naming diff:
-    - Java package uses jsonsummary.
+    - Java package uses jsonsummary for summary behavior and json for shared parsing.
   unmigrated diff:
     - Full JSON behavior beyond upstream test intent remains to be checked.
   Java-side extension:
-    - Parser is a Java-side helper.
+    - JsonParser is a Java-side helper shared by JSON summary extraction and generation metadata refresh.
 
 follow-up:
   - `2026-04-22`: `mvn test` passed.
@@ -85,6 +85,12 @@ follow-up:
   - `2026-05-08`: `mvn test` passed.
   - `2026-05-16`: fetched upstream `miku-indexgen` and followed Markdown front matter `title` / `topics` extraction from `origin/devel` through `10efa60`.
   - `2026-05-16`: added Java CLI `--version` / `-v` handling to follow upstream `v1.2.0`.
+  - `2026-05-22`: fetched upstream `miku-indexgen` and followed `origin/devel` through `07064d0` / upstream `1.3.0`.
+  - `2026-05-22`: added Java generation metadata output, `--refresh-index`, and documented Markdown front matter metadata fields.
+  - `2026-05-22`: Java version updated to `1.3.0`.
+  - `2026-05-22`: copied upstream product-specific docs `input-files-spec.md`, `index-json-spec.md`, and `miku-indexgen-frontmatter-spec.md`; replaced copied shared `miku-soft-*` docs with `docs/miku-soft-reference.md`.
+  - `2026-05-22`: followed up separated `miku-indexgen-java-maven` for runtime `1.3.0`; plugin tests, package, and smoke passed after local runtime install.
+  - `2026-05-22`: `mvn test` passed.
 ```
 
 ```text
