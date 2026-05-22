@@ -53,6 +53,80 @@ class MarkdownTest {
     }
 
     @Test
+    void extractFrontMatterExtractsDocumentedYamlMetadataFields() {
+        Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter(String.join("\n",
+                "---",
+                "title: Runtime operations map",
+                "description: >",
+                "  CLI runtime selection, command examples, and backend policy.",
+                "topics: [miku-indexgen, runtime]",
+                "category: reference",
+                "status: stable",
+                "audience:",
+                "  - agent",
+                "  - maintainer",
+                "created: 2026-05-22",
+                "updated: 2026-05-23",
+                "sources:",
+                "  - type: human-input",
+                "    label: user-provided requirements",
+                "    role: primary",
+                "    checked: 2026-05-22",
+                "  - type: local-file",
+                "    path: docs/index-json-spec.md",
+                "    extra: ignored",
+                "---",
+                "# Body",
+                ""));
+
+        assertEquals("Runtime operations map", result.metadata.title);
+        assertEquals("CLI runtime selection, command examples, and backend policy.", result.metadata.description);
+        assertEquals(java.util.Arrays.asList("miku-indexgen", "runtime"), result.metadata.topics);
+        assertEquals("reference", result.metadata.category);
+        assertEquals("stable", result.metadata.status);
+        assertEquals(java.util.Arrays.asList("agent", "maintainer"), result.metadata.audience);
+        assertEquals("2026-05-22", result.metadata.created);
+        assertEquals("2026-05-23", result.metadata.updated);
+        assertEquals(2, result.metadata.sources.size());
+        assertEquals("human-input", result.metadata.sources.get(0).type);
+        assertEquals("primary", result.metadata.sources.get(0).role);
+        assertEquals("user-provided requirements", result.metadata.sources.get(0).label);
+        assertEquals("2026-05-22", result.metadata.sources.get(0).checked);
+        assertEquals("local-file", result.metadata.sources.get(1).type);
+        assertEquals("docs/index-json-spec.md", result.metadata.sources.get(1).path);
+    }
+
+    @Test
+    void extractFrontMatterIgnoresUnknownFieldsAndUnsupportedDocumentedValueShapes() {
+        Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter(String.join("\n",
+                "---",
+                "title:",
+                "  text: Writing Guide",
+                "topics:",
+                "  - name: writing",
+                "metadata:",
+                "  category: reference",
+                "sources:",
+                "  - label: missing type",
+                "---",
+                "# Body",
+                ""));
+
+        assertNull(result.metadata.title);
+        assertNull(result.metadata.topics);
+        assertNull(result.metadata.sources);
+    }
+
+    @Test
+    void extractFrontMatterTreatsInvalidYamlLikeMetadataAsEmptyWhilePreservingBodyExtraction() {
+        Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter("---\ntitle: [unterminated\n---\n# Body\n");
+
+        assertEquals("# Body\n", result.body);
+        assertNull(result.metadata.title);
+        assertNull(result.metadata.topics);
+    }
+
+    @Test
     void extractFrontMatterTreatsUnclosedFrontMatterAsBodyText() {
         String markdown = "---\ntitle: Writing Guide\n# Body\n";
         Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter(markdown);

@@ -2,6 +2,7 @@ package jp.igapyon.mikuindexgen.coreapi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.Charset;
@@ -40,6 +41,7 @@ class IndexgenTest {
         String index = new String(Files.readAllBytes(docsDir.resolve("index.json")), "UTF-8");
         assertEquals(2, result.subdirectories);
         assertTrue(index.contains("\"generator\": \"miku-indexgen\""));
+        assertTrue(index.contains("\"generation\": {\"schemaVersion\":1,\"inputPath\":\".\",\"markdownOutput\":false,\"recursive\":true,\"includeExtensions\":[\"md\",\"json\"],\"inputEncoding\":\"utf8\",\"outputEncoding\":\"utf8\",\"includeGeneratorMetadata\":true}"));
         assertTrue(index.contains("\"basePath\": \".\""));
         assertTrue(index.contains("\"path\":\"chapter1/a.md\""));
         assertTrue(index.contains("\"summary\":\"Workbook: sample.xlsx Second line\""));
@@ -126,31 +128,88 @@ class IndexgenTest {
     }
 
     @Test
-    void createIndexesIncludesMarkdownFrontMatterTitleAndTopicsInFileEntries() throws Exception {
+    void createIndexesIncludesDocumentedMarkdownFrontMatterMetadataInFileEntries() throws Exception {
         Path docsDir = tempDir.resolve("docs");
 
         Files.createDirectories(docsDir);
-        Files.write(docsDir.resolve("writing-guide.md"),
-                ("---\n"
-                        + "title: Writing Guide\n"
-                        + "topics:\n"
-                        + "  - writing\n"
-                        + "  - article\n"
-                        + "  - tone\n"
-                        + "---\n"
-                        + "\n"
-                        + "# Body Title\n").getBytes("UTF-8"));
+        Files.write(docsDir.resolve("writing-guide.md"), String.join("\n",
+                "---",
+                "title: Writing Guide",
+                "description: >",
+                "  Practical writing conventions for indexed Markdown files.",
+                "topics:",
+                "  - writing",
+                "  - article",
+                "  - tone",
+                "category: guide",
+                "status: stable",
+                "audience: [agent, maintainer]",
+                "created: 2026-05-22",
+                "updated: 2026-05-23",
+                "sources:",
+                "  - type: human-input",
+                "    label: user-provided requirements",
+                "    role: primary",
+                "    checked: 2026-05-22",
+                "---",
+                "",
+                "# Body Title",
+                "").getBytes("UTF-8"));
 
         IndexgenOptions options = defaultOptions(docsDir);
         IndexgenResult result = new Indexgen().createIndexes(options);
 
         String index = new String(Files.readAllBytes(docsDir.resolve("index.json")), "UTF-8");
         assertEquals("Writing Guide", result.files.get(0).title);
+        assertEquals("Practical writing conventions for indexed Markdown files.", result.files.get(0).description);
         assertEquals(Arrays.asList("writing", "article", "tone"), result.files.get(0).topics);
+        assertEquals("guide", result.files.get(0).category);
+        assertEquals("stable", result.files.get(0).status);
+        assertEquals(Arrays.asList("agent", "maintainer"), result.files.get(0).audience);
+        assertEquals("2026-05-22", result.files.get(0).created);
+        assertEquals("2026-05-23", result.files.get(0).updated);
+        assertEquals("human-input", result.files.get(0).sources.get(0).type);
         assertEquals("Body Title", result.files.get(0).summary);
         assertTrue(index.contains("\"title\":\"Writing Guide\""));
+        assertTrue(index.contains("\"description\":\"Practical writing conventions for indexed Markdown files.\""));
         assertTrue(index.contains("\"topics\":[\"writing\",\"article\",\"tone\"]"));
+        assertTrue(index.contains("\"category\":\"guide\""));
+        assertTrue(index.contains("\"audience\":[\"agent\",\"maintainer\"]"));
+        assertTrue(index.contains("\"sources\":[{\"type\":\"human-input\",\"role\":\"primary\",\"label\":\"user-provided requirements\",\"checked\":\"2026-05-22\"}]"));
         assertTrue(index.contains("\"summary\":\"Body Title\""));
+    }
+
+    @Test
+    void refreshIndexRegeneratesAnExistingIndexFromGenerationMetadata() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Path outDir = tempDir.resolve("out");
+
+        Files.createDirectories(docsDir);
+        Files.write(docsDir.resolve("root.md"), "# Root\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = defaultOptions(docsDir);
+        options.outputDirectory = outDir.toString();
+        options.title = "Docs Index";
+        options.markdownOutput = true;
+        options.includeExtensions = Arrays.asList("md");
+        new Indexgen().createIndexes(options);
+
+        Files.write(docsDir.resolve("second.md"), "# Second\n".getBytes("UTF-8"));
+
+        IndexgenOptions refreshOptions = new IndexgenOptions();
+        refreshOptions.refreshIndex = outDir.resolve("index.json").toString();
+        refreshOptions.overwrite = true;
+        refreshOptions.verbose = false;
+        IndexgenResult result = new Indexgen().createIndexes(refreshOptions);
+
+        String index = new String(Files.readAllBytes(outDir.resolve("index.json")), "UTF-8");
+        String markdown = new String(Files.readAllBytes(outDir.resolve("index.md")), "UTF-8");
+        assertEquals(Arrays.asList("root.md", "second.md"), paths(result.files));
+        assertTrue(index.contains("\"title\": \"Docs Index\""));
+        assertTrue(index.contains("\"inputPath\":\"../docs\""));
+        assertTrue(index.contains("\"markdownOutput\":true"));
+        assertTrue(index.contains("\"includeExtensions\":[\"md\"]"));
+        assertTrue(markdown.contains("| [second.md](second.md) | md |  | 9 | Second |"));
     }
 
     @Test
@@ -236,6 +295,45 @@ class IndexgenTest {
         assertFalse(Files.exists(child1.resolve("index.json")));
         String index = new String(Files.readAllBytes(outDir.resolve("b1").resolve("index.json")), "UTF-8");
         assertTrue(index.contains("\"basePath\": \"../../parent/b1\""));
+    }
+
+    @Test
+    void createIndexesAggregatesChildDirectoryBatchFailuresAndContinues() throws Exception {
+        Path parentDir = tempDir.resolve("parent");
+        Path outDir = tempDir.resolve("out");
+        Path child1 = parentDir.resolve("b1");
+        Path child2 = parentDir.resolve("b2");
+        Path child3 = parentDir.resolve("b3");
+        Files.createDirectories(child1);
+        Files.createDirectories(child2);
+        Files.createDirectories(child3);
+        Files.createDirectories(outDir);
+        Files.write(child1.resolve("a.md"), "# A\n".getBytes("UTF-8"));
+        Files.write(child2.resolve("b.md"), "# B\n".getBytes("UTF-8"));
+        Files.write(child3.resolve("c.md"), "# C\n".getBytes("UTF-8"));
+        Files.write(outDir.resolve("b2"), "not a directory\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = new IndexgenOptions();
+        options.inputParentDirectory = parentDir.toString();
+        options.outputDirectory = outDir.toString();
+        options.markdownOutput = true;
+        options.recursive = false;
+        options.overwrite = true;
+        options.includeExtensions = Arrays.asList("md", "json");
+        options.inputEncoding = "utf8";
+        options.outputEncoding = "utf8";
+
+        IndexgenBatchException ex = assertThrows(IndexgenBatchException.class,
+                () -> new Indexgen().createIndexes(options));
+        IndexgenResult result = ex.getResult();
+
+        assertEquals(3, result.childDirectoriesProcessed);
+        assertEquals(1, result.childDirectoriesFailed);
+        assertTrue(result.failed());
+        assertTrue(Files.isRegularFile(outDir.resolve("b1").resolve("index.json")));
+        assertTrue(Files.isRegularFile(outDir.resolve("b3").resolve("index.json")));
+        assertFalse(Files.isDirectory(outDir.resolve("b2")));
+        assertTrue(result.childFailureMessages.get(0).contains("Output directory must be a directory"));
     }
 
     @Test

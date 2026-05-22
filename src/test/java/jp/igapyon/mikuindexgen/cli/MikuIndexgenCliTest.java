@@ -53,6 +53,17 @@ class MikuIndexgenCliTest {
     }
 
     @Test
+    void parseArgsParsesRefreshIndexWithoutRequiringAnInputDirectory() {
+        CliOptions options = MikuIndexgenCli.parseArgs(new String[] {
+                "--refresh-index", "workplace/index.json",
+                "--verbose"
+        });
+
+        assertEquals("workplace/index.json", options.refreshIndex);
+        assertTrue(options.verbose);
+    }
+
+    @Test
     void parseArgsEnablesGeneratorMetadataByDefault() {
         assertTrue(MikuIndexgenCli.parseArgs(new String[] { "--input-directory", "./docs" }).includeGeneratorMetadata.booleanValue());
     }
@@ -83,8 +94,37 @@ class MikuIndexgenCliTest {
                 new PrintStream(stderrBuffer, true, "UTF-8"));
 
         assertEquals(0, exitCode);
-        assertEquals("miku-indexgen 1.2.1\n", stdoutBuffer.toString("UTF-8"));
+        assertEquals("miku-indexgen 1.3.0\n", stdoutBuffer.toString("UTF-8"));
         assertEquals("", stderrBuffer.toString("UTF-8"));
+    }
+
+    @Test
+    void runPrintsContractFocusedHelp() throws Exception {
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+
+        int exitCode = new MikuIndexgenCli().run(
+                new String[] { "--help" },
+                new PrintStream(stdoutBuffer, true, "UTF-8"),
+                new PrintStream(stderrBuffer, true, "UTF-8"));
+
+        String stdout = stdoutBuffer.toString("UTF-8");
+        assertEquals(0, exitCode);
+        assertEquals("", stderrBuffer.toString("UTF-8"));
+        assertTrue(stdout.contains("miku-indexgen --input-directory <dir>"));
+        assertTrue(stdout.contains("miku-indexgen --input-parent-directory <dir>"));
+        assertTrue(stdout.contains("miku-indexgen --refresh-index <index.json>"));
+        assertTrue(stdout.contains("Default behavior:"));
+        assertTrue(stdout.contains("Child-directory batch mode:"));
+        assertTrue(stdout.contains("Generated output:"));
+        assertTrue(stdout.contains("Markdown:"));
+        assertTrue(stdout.contains("JSON:"));
+        assertTrue(stdout.contains("Options:"));
+        assertTrue(stdout.contains("Examples:"));
+        assertTrue(stdout.contains("References:"));
+        assertTrue(stdout.contains("docs/input-files-spec.md"));
+        assertTrue(stdout.contains("docs/index-json-spec.md"));
+        assertTrue(stdout.contains("docs/miku-indexgen-frontmatter-spec.md"));
     }
 
     @Test
@@ -103,10 +143,18 @@ class MikuIndexgenCliTest {
     }
 
     @Test
-    void parseArgsRejectsUsingInputDirectoryAndInputParentDirectoryTogether() {
+    void parseArgsRejectsUsingMultipleInputModesTogether() {
         assertThrows(IllegalArgumentException.class, () -> MikuIndexgenCli.parseArgs(new String[] {
                 "--input-directory", "./docs",
                 "--input-parent-directory", "./parent"
+        }));
+        assertThrows(IllegalArgumentException.class, () -> MikuIndexgenCli.parseArgs(new String[] {
+                "--input-directory", "./docs",
+                "--refresh-index", "./index.json"
+        }));
+        assertThrows(IllegalArgumentException.class, () -> MikuIndexgenCli.parseArgs(new String[] {
+                "--input-parent-directory", "./parent",
+                "--refresh-index", "./index.json"
         }));
     }
 
@@ -183,6 +231,41 @@ class MikuIndexgenCliTest {
         assertFalse(Files.exists(outDir.resolve(".hidden-child").resolve("index.json")));
         assertFalse(Files.exists(outDir.resolve("note.md")));
         assertTrue(stdout.contains("completed: 2 child directories processed"));
+    }
+
+    @Test
+    void runReturnsNonZeroAfterAggregatingChildDirectoryFailures() throws Exception {
+        Path parentDir = tempDir.resolve("parent");
+        Path outDir = tempDir.resolve("out");
+        Path child1 = parentDir.resolve("b1");
+        Path child2 = parentDir.resolve("b2");
+        Path child3 = parentDir.resolve("b3");
+        Files.createDirectories(child1);
+        Files.createDirectories(child2);
+        Files.createDirectories(child3);
+        Files.createDirectories(outDir);
+        Files.write(child1.resolve("a.md"), "# A\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(child2.resolve("b.md"), "# B\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(child3.resolve("c.md"), "# C\n".getBytes(StandardCharsets.UTF_8));
+        Files.write(outDir.resolve("b2"), "not a directory\n".getBytes(StandardCharsets.UTF_8));
+
+        ByteArrayOutputStream stdoutBuffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderrBuffer = new ByteArrayOutputStream();
+
+        int exitCode = new MikuIndexgenCli().run(
+                new String[] { "--input-parent-directory", parentDir.toString(), "--output-directory", outDir.toString(), "--markdown" },
+                new PrintStream(stdoutBuffer, true, "UTF-8"),
+                new PrintStream(stderrBuffer, true, "UTF-8"));
+
+        String stdout = stdoutBuffer.toString("UTF-8");
+        String stderr = stderrBuffer.toString("UTF-8");
+
+        assertEquals(1, exitCode);
+        assertTrue(Files.isRegularFile(outDir.resolve("b1").resolve("index.json")));
+        assertTrue(Files.isRegularFile(outDir.resolve("b3").resolve("index.json")));
+        assertTrue(stdout.contains("completed: 3 child directories processed, 1 failed"));
+        assertTrue(stderr.contains("failed: "));
+        assertTrue(stderr.contains("Output directory must be a directory"));
     }
 
     @Test

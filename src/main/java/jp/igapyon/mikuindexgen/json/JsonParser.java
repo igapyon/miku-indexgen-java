@@ -1,19 +1,19 @@
-package jp.igapyon.mikuindexgen.jsonsummary;
+package jp.igapyon.mikuindexgen.json;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class Parser {
+public final class JsonParser {
     private final String text;
     private int index;
 
-    Parser(String text) {
+    public JsonParser(String text) {
         this.text = text;
     }
 
-    Object parse() {
+    public Object parse() {
         Object value = parseValue();
         skipWhitespace();
         if (index != text.length()) {

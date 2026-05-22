@@ -10,7 +10,9 @@ upstream file:
 
 java classes:
   jp.igapyon.mikuindexgen.model.CliOptions
+  jp.igapyon.mikuindexgen.model.GenerationMetadata
   jp.igapyon.mikuindexgen.model.IndexFile
+  jp.igapyon.mikuindexgen.model.IndexSource
   jp.igapyon.mikuindexgen.model.RootIndex
 
 notes:
@@ -20,12 +22,16 @@ notes:
 ```text
 upstream file:
   workplace/miku-indexgen/src/markdown.ts
+  workplace/miku-indexgen/src/frontmatter.ts
+  workplace/miku-indexgen/src/text-sanitize.ts
 
 java classes:
+  jp.igapyon.mikuindexgen.markdown.MarkdownFrontMatterParser
   jp.igapyon.mikuindexgen.markdown.Markdown
 
 notes:
-  - Initial conversion covers sanitizeTextForIndex, escapeMarkdownTableCell, extractSummary, and buildMarkdownIndexContent.
+  - Initial conversion covers sanitizeTextForIndex, escapeMarkdownTableCell, extractSummary, front matter extraction, and buildMarkdownIndexContent.
+  - Java front matter parsing covers the documented scalar, string-array, date-only, and source metadata shapes used by upstream tests.
 ```
 
 ```text
@@ -33,11 +39,11 @@ upstream file:
   workplace/miku-indexgen/src/json-summary.ts
 
 java classes:
+  jp.igapyon.mikuindexgen.json.JsonParser
   jp.igapyon.mikuindexgen.jsonsummary.JsonSummary
-  jp.igapyon.mikuindexgen.jsonsummary.Parser
 
 notes:
-  - Parser is a Java-side helper for the JSON Pointer summary use case.
+  - JsonParser is a Java-side helper shared by JSON summary extraction and generation metadata refresh.
 ```
 
 ```text
@@ -79,8 +85,12 @@ notes:
 ```text
 upstream file:
   workplace/miku-indexgen/src/indexer.ts
+  workplace/miku-indexgen/src/generation.ts
+  workplace/miku-indexgen/src/index-json.ts
 
 java classes:
+  jp.igapyon.mikuindexgen.coreapi.IndexJsonFormatter
+  jp.igapyon.mikuindexgen.coreapi.Generation
   jp.igapyon.mikuindexgen.coreapi.Indexgen
   jp.igapyon.mikuindexgen.coreapi.IndexgenOptions
   jp.igapyon.mikuindexgen.coreapi.IndexgenResult

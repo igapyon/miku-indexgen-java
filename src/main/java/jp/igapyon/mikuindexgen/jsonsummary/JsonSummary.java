@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import jp.igapyon.mikuindexgen.json.JsonParser;
 import jp.igapyon.mikuindexgen.markdown.Markdown;
 
 public final class JsonSummary {
@@ -76,7 +77,7 @@ public final class JsonSummary {
     public static String extractJsonSummary(String jsonText, List<String> paths, int maxLength) {
         Object parsed;
         try {
-            parsed = new Parser(jsonText).parse();
+            parsed = new JsonParser(jsonText).parse();
         } catch (RuntimeException ex) {
             return null;
         }

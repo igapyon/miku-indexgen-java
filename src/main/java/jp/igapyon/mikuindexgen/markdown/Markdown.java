@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.igapyon.mikuindexgen.model.IndexFile;
+import jp.igapyon.mikuindexgen.model.IndexSource;
 
 public final class Markdown {
     private Markdown() {
@@ -12,7 +13,14 @@ public final class Markdown {
 
     public static final class MarkdownFrontMatter {
         public String title;
+        public String description;
         public List<String> topics;
+        public String category;
+        public String status;
+        public List<String> audience;
+        public String created;
+        public String updated;
+        public List<IndexSource> sources;
     }
 
     public static final class MarkdownFrontMatterResult {
@@ -151,7 +159,7 @@ public final class Markdown {
         }
 
         return frontMatterResult(stripLeadingLineBreaks(normalizedMarkdown.substring(bodyStart)),
-                parseFrontMatterMetadata(frontMatter));
+                MarkdownFrontMatterParser.parse(frontMatter));
     }
 
     private static String stripLeadingLineBreaks(String value) {
@@ -230,90 +238,6 @@ public final class Markdown {
             }
         }
         return text.length();
-    }
-
-    private static MarkdownFrontMatter parseFrontMatterMetadata(String frontMatter) {
-        String[] lines = frontMatter.split("\\r?\\n", -1);
-        MarkdownFrontMatter metadata = new MarkdownFrontMatter();
-
-        for (int index = 0; index < lines.length; index++) {
-            String line = lines[index].trim();
-            if (line.length() == 0 || line.startsWith("#")) {
-                continue;
-            }
-
-            java.util.regex.Matcher titleMatcher = java.util.regex.Pattern.compile("^title:\\s*(.*)$").matcher(line);
-            if (titleMatcher.matches()) {
-                String title = sanitizeTextForIndex(unquoteFrontMatterValue(titleMatcher.group(1)));
-                if (title.length() > 0) {
-                    metadata.title = title;
-                }
-                continue;
-            }
-
-            java.util.regex.Matcher topicsMatcher = java.util.regex.Pattern.compile("^topics:\\s*(.*)$").matcher(line);
-            if (!topicsMatcher.matches()) {
-                continue;
-            }
-
-            List<String> inlineTopics = parseInlineTopics(topicsMatcher.group(1));
-            if (inlineTopics != null) {
-                metadata.topics = inlineTopics;
-                continue;
-            }
-
-            List<String> topics = new ArrayList<String>();
-            for (int topicIndex = index + 1; topicIndex < lines.length; topicIndex++) {
-                String topicLine = lines[topicIndex];
-                if (topicLine.trim().length() == 0) {
-                    continue;
-                }
-                java.util.regex.Matcher topicMatcher = java.util.regex.Pattern.compile("^\\s*-\\s+(.+)$").matcher(topicLine);
-                if (!topicMatcher.matches()) {
-                    break;
-                }
-                String topic = sanitizeTextForIndex(unquoteFrontMatterValue(topicMatcher.group(1)));
-                if (topic.length() > 0) {
-                    topics.add(topic);
-                }
-                index = topicIndex;
-            }
-
-            if (!topics.isEmpty()) {
-                metadata.topics = topics;
-            }
-        }
-
-        return metadata;
-    }
-
-    private static String unquoteFrontMatterValue(String value) {
-        String trimmed = value.trim();
-        if (trimmed.length() >= 2) {
-            char first = trimmed.charAt(0);
-            char last = trimmed.charAt(trimmed.length() - 1);
-            if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
-                return trimmed.substring(1, trimmed.length() - 1).trim();
-            }
-        }
-        return trimmed;
-    }
-
-    private static List<String> parseInlineTopics(String value) {
-        String trimmed = value.trim();
-        if (!trimmed.startsWith("[") || !trimmed.endsWith("]")) {
-            return null;
-        }
-
-        List<String> topics = new ArrayList<String>();
-        String content = trimmed.substring(1, trimmed.length() - 1);
-        for (String rawTopic : content.split(",")) {
-            String topic = sanitizeTextForIndex(unquoteFrontMatterValue(rawTopic));
-            if (topic.length() > 0) {
-                topics.add(topic);
-            }
-        }
-        return topics.isEmpty() ? null : topics;
     }
 
     public static String buildMarkdownIndexContent(List<IndexFile> files) {

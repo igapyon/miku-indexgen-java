@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import jp.igapyon.mikuindexgen.coreapi.IndexgenBatchException;
 import jp.igapyon.mikuindexgen.coreapi.Indexgen;
 import jp.igapyon.mikuindexgen.coreapi.IndexgenOptions;
 import jp.igapyon.mikuindexgen.coreapi.IndexgenResult;
@@ -23,33 +24,15 @@ public class MikuIndexgenCli {
     }
 
     public int run(String[] args, PrintStream out, PrintStream err) {
+        CliOptions cliOptions = null;
         try {
-            CliOptions cliOptions = parseArgs(args);
+            cliOptions = parseArgs(args);
             IndexgenOptions options = IndexgenOptions.fromCliOptions(cliOptions);
             options.verboseStream = cliOptions.verbose ? err : null;
             IndexgenResult result = new Indexgen().createIndexes(options);
-            for (String log : result.logs) {
-                if (isVerboseLog(log)) {
-                    if (options.verboseStream == null) {
-                        err.println(log);
-                    }
-                } else {
-                    out.println(log);
-                }
-            }
-            if (result.skipped()) {
-                out.println("skip: " + result.skippedOutputPath);
-            } else {
-                for (java.nio.file.Path generatedPath : result.generatedPaths) {
-                    out.println("generated: " + generatedPath);
-                }
-            }
-            if (hasValue(cliOptions.inputParentDirectory)) {
-                out.println("completed: " + result.childDirectoriesProcessed + " child directories processed");
-            } else {
-                out.println("completed: " + result.subdirectories + " subdirectories processed");
-            }
-            return 0;
+            return printResult(cliOptions, result, out, err);
+        } catch (IndexgenBatchException ex) {
+            return printResult(cliOptions, ex.getResult(), out, err);
         } catch (HelpRequestedException ex) {
             printHelp(out);
             return 0;
@@ -61,6 +44,39 @@ public class MikuIndexgenCli {
             printHelp(err);
             return 1;
         }
+    }
+
+    private int printResult(CliOptions cliOptions, IndexgenResult result, PrintStream out, PrintStream err) {
+        for (String log : result.logs) {
+            if (isVerboseLog(log)) {
+                if (!cliOptions.verbose) {
+                    err.println(log);
+                }
+            } else {
+                out.println(log);
+            }
+        }
+        if (result.skipped()) {
+            out.println("skip: " + result.skippedOutputPath);
+        } else {
+            for (java.nio.file.Path generatedPath : result.generatedPaths) {
+                out.println("generated: " + generatedPath);
+            }
+        }
+        if (hasValue(cliOptions.inputParentDirectory)) {
+            for (String failure : result.childFailureMessages) {
+                err.println("failed: " + failure);
+            }
+            if (result.failed()) {
+                out.println("completed: " + result.childDirectoriesProcessed + " child directories processed, "
+                        + result.childDirectoriesFailed + " failed");
+                return 1;
+            }
+            out.println("completed: " + result.childDirectoriesProcessed + " child directories processed");
+        } else {
+            out.println("completed: " + result.subdirectories + " subdirectories processed");
+        }
+        return 0;
     }
 
     private static boolean isVerboseLog(String log) {
@@ -119,6 +135,12 @@ public class MikuIndexgenCli {
 
             if ("--input-parent-directory".equals(arg)) {
                 options.inputParentDirectory = readRequiredOptionValue(argv, i, "--input-parent-directory", "an input parent directory");
+                i++;
+                continue;
+            }
+
+            if ("--refresh-index".equals(arg)) {
+                options.refreshIndex = readRequiredOptionValue(argv, i, "--refresh-index", "an index.json path");
                 i++;
                 continue;
             }
@@ -193,25 +215,21 @@ public class MikuIndexgenCli {
             throw new IllegalArgumentException("Unknown argument: " + arg);
         }
 
-        if (hasValue(options.inputDirectory) && hasValue(options.inputParentDirectory)) {
-            throw new IllegalArgumentException("Specify either --input-directory or --input-parent-directory, not both.");
+        int inputModes = 0;
+        inputModes += hasValue(options.inputDirectory) ? 1 : 0;
+        inputModes += hasValue(options.inputParentDirectory) ? 1 : 0;
+        inputModes += hasValue(options.refreshIndex) ? 1 : 0;
+        if (inputModes > 1) {
+            throw new IllegalArgumentException("Specify only one of --input-directory, --input-parent-directory, or --refresh-index.");
         }
-        if (!hasValue(options.inputDirectory) && !hasValue(options.inputParentDirectory)) {
-            throw new IllegalArgumentException("Please specify --input-directory or --input-parent-directory.");
+        if (inputModes == 0) {
+            throw new IllegalArgumentException("Please specify --input-directory, --input-parent-directory, or --refresh-index.");
         }
         return options;
     }
 
     public static void printHelp(PrintStream out) {
-        out.println("Usage:\n"
-                + "  miku-indexgen (--input-directory <dir> | --input-parent-directory <dir>) [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
-                + "\n"
-                + "Description:\n"
-                + "  Generate root JSON indexes for one input directory or for each direct child\n"
-                + "  directory under an input parent directory. Output files are written under\n"
-                + "  the selected output directory or input directory by default.\n"
-                + "  Use --version to print the CLI version.\n"
-                + "  Supported encodings: utf8, shift_jis\n");
+        out.println(HelpText.TEXT);
     }
 
     private static boolean hasValue(String value) {
