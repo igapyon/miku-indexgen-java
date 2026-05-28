@@ -69,6 +69,39 @@ class IndexgenTest {
     }
 
     @Test
+    void createIndexesReportsAddNoneAndUpdateStatusesWhenOutputsAreRewritten() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+        Path chapter1 = docsDir.resolve("chapter1");
+
+        Files.createDirectories(chapter1);
+        Files.write(docsDir.resolve("root.md"), "# Root\n".getBytes("UTF-8"));
+        Files.write(chapter1.resolve("a.md"), "# A\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = defaultOptions(docsDir);
+        options.markdownOutput = true;
+
+        Indexgen indexgen = new Indexgen();
+        IndexgenResult firstResult = indexgen.createIndexes(options);
+        assertEquals(Arrays.asList(
+                "add   : " + docsDir.resolve("index.json").toAbsolutePath().normalize(),
+                "add   : " + docsDir.resolve("index.md").toAbsolutePath().normalize()),
+                firstResult.outputMessages);
+
+        IndexgenResult secondResult = indexgen.createIndexes(options);
+        assertEquals(Arrays.asList(
+                "none  : " + docsDir.resolve("index.json").toAbsolutePath().normalize(),
+                "none  : " + docsDir.resolve("index.md").toAbsolutePath().normalize()),
+                secondResult.outputMessages);
+
+        Files.write(chapter1.resolve("a.md"), "# A updated\n".getBytes("UTF-8"));
+        IndexgenResult thirdResult = indexgen.createIndexes(options);
+        assertEquals(Arrays.asList(
+                "update: " + docsDir.resolve("index.json").toAbsolutePath().normalize(),
+                "update: " + docsDir.resolve("index.md").toAbsolutePath().normalize()),
+                thirdResult.outputMessages);
+    }
+
+    @Test
     void createIndexesWritesOutputsUnderOutputDirectoryWhenSpecified() throws Exception {
         Path docsDir = tempDir.resolve("docs");
         Path outDir = tempDir.resolve("out");

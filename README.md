@@ -29,6 +29,12 @@ This generates:
 - `out/index.json`
 - `out/index.md`
 
+When outputs are written, the CLI reports one status line per output file:
+
+- `add   :` newly created
+- `update:` rewritten because content changed
+- `none  :` unchanged content, so the file was left as-is
+
 When `--output-directory` is omitted, outputs are written under `inputDirectory`.
 Generated `index.json` includes generation metadata so the same index can be refreshed later.
 
@@ -92,6 +98,10 @@ The Maven plugin is maintained in the separated `miku-indexgen-java-maven` repos
 - Runtime artifact used by the plugin: `jp.igapyon:miku-indexgen`
 
 This repository owns the Java runtime, CLI, core API, runtime tests, and runtime release assets.
+
+## Repository Maintenance
+
+When checking README or documentation typos, use the `igapyon-miku-soft-developer` skill in typo-check mode.
 
 ## More Information
 

@@ -5,7 +5,7 @@
 
   <groupId>jp.igapyon</groupId>
   <artifactId>miku-indexgen</artifactId>
-  <version>1.3.0</version>
+  <version>1.4.4</version>
   <packaging>jar</packaging>
 
   <name>miku-indexgen</name>

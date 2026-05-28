@@ -125,6 +125,7 @@ public class Indexgen {
                 IndexgenResult childResult = createIndexesForSingleInputDirectory(childOptions);
                 result.files.addAll(childResult.files);
                 result.generatedPaths.addAll(childResult.generatedPaths);
+                result.outputMessages.addAll(childResult.outputMessages);
                 result.logs.addAll(childResult.logs);
                 if (childResult.skipped()) {
                     result.logs.add("skip: " + childResult.skippedOutputPath);
@@ -279,6 +280,29 @@ public class Indexgen {
         return null;
     }
 
+    private String writeTextFileWithStatus(Path filePath, String content, String encoding) throws IOException {
+        if (!Files.isRegularFile(filePath)) {
+            Encoding.writeTextFile(filePath, content, encoding);
+            return "add";
+        }
+
+        String existingContent = Encoding.readTextFile(filePath, encoding);
+        if (existingContent.equals(content)) {
+            return "none";
+        }
+
+        Encoding.writeTextFile(filePath, content, encoding);
+        return "update";
+    }
+
+    private String formatOutputStatus(String status) {
+        StringBuilder builder = new StringBuilder(status == null ? "" : status);
+        while (builder.length() < 6) {
+            builder.append(' ');
+        }
+        return builder.toString();
+    }
+
     private IndexFile buildIndexFile(Path filePath, Path targetPath, String inputEncoding, List<String> jsonSummaryPaths,
             IndexgenTimings timings) throws IOException {
         long statStart = System.nanoTime();
@@ -408,18 +432,21 @@ public class Indexgen {
         result.timings.jsonStringifyMs = elapsedMs(jsonStringifyStart);
 
         long jsonWriteStart = System.nanoTime();
-        Encoding.writeTextFile(outputPaths.jsonPath, jsonContent, options.outputEncoding);
+        String jsonStatus = writeTextFileWithStatus(outputPaths.jsonPath, jsonContent, options.outputEncoding);
         result.timings.jsonWriteMs = elapsedMs(jsonWriteStart);
         result.generatedPaths.add(outputPaths.jsonPath);
+        result.outputMessages.add(formatOutputStatus(jsonStatus) + ": " + outputPaths.jsonPath);
 
         if (outputPaths.markdownPath == null) {
             return;
         }
 
         long markdownStart = System.nanoTime();
-        Encoding.writeTextFile(outputPaths.markdownPath, Markdown.buildMarkdownIndexContent(files), options.outputEncoding);
+        String markdownContent = Markdown.buildMarkdownIndexContent(files);
+        String markdownStatus = writeTextFileWithStatus(outputPaths.markdownPath, markdownContent, options.outputEncoding);
         result.timings.markdownMs = elapsedMs(markdownStart);
         result.generatedPaths.add(outputPaths.markdownPath);
+        result.outputMessages.add(formatOutputStatus(markdownStatus) + ": " + outputPaths.markdownPath);
     }
 
     public IndexgenResult refreshIndex(IndexgenOptions options) throws IOException {
