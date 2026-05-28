@@ -167,6 +167,24 @@ Implemented initial units:
 - `2026-05-22`: copied product-specific docs checked against upstream `origin/devel` `07064d0`
   - `docs/miku-indexgen-frontmatter-spec.md` matched upstream
   - `docs/input-files-spec.md` and `docs/index-json-spec.md` differed only in Java companion repository context wording near the top of the document
+- `2026-05-29`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local upstream `origin/devel` advanced to `1ac90d0`
+  - Upstream tags `v1.4.0`, `v1.4.1`, `v1.4.2`, `v1.4.3`, and `v1.4.4` were observed
+  - Java side followed upstream `1.4.4` runtime behavior for output status labels
+- `2026-05-29`: Maven coordinates updated to `1.4.4` to follow upstream `miku-indexgen` `1.4.4`
+  - Runtime: `jp.igapyon:miku-indexgen:1.4.4`
+  - CLI version output: `miku-indexgen 1.4.4`
+- `2026-05-29`: `mvn test`
+  - Single-module runtime build success
+  - Runtime tests run: 58
+- `2026-05-29`: `mvn package`
+  - Single-module runtime build success with version `1.4.4`
+  - Produced `target/miku-indexgen-1.4.4.jar`
+  - Produced `target/miku-indexgen-1.4.4-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.4.4.zip`
+- `2026-05-29`: jar smoke checked output status labels
+  - First run reported `add   :` for `index.json` and `index.md`
+  - Second unchanged run reported `none  :` for `index.json` and `index.md`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

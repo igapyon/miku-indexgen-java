@@ -30,6 +30,8 @@ final class HelpText {
             + "  index.json contains title, generator, generation, basePath, and files[].\n"
             + "  files[] entries include name, path, ext, dir, size, optional Markdown\n"
             + "  metadata, and optional summary.\n"
+            + "  When outputs are written, the CLI reports aligned add   :, update:, or none  :\n"
+            + "  labels for each file.\n"
             + "\n"
             + "Markdown:\n"
             + "  - summary is extracted from the first heading or leading body text\n"

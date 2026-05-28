@@ -100,6 +100,7 @@ notes:
   - Core API is intentionally independent of CLI argv parsing.
   - Separated adapters can call Indexgen.createIndexes(IndexgenOptions).
   - JSON output formatting follows upstream `formatIndexJson` so each file entry is emitted as one search-friendly line.
+  - Output write status follows upstream `add` / `update` / `none` labels and is exposed through `IndexgenResult.outputMessages`.
 ```
 
 ```text

@@ -15,6 +15,7 @@ public class IndexgenResult {
     public Path markdownPath;
     public Path skippedOutputPath;
     public List<Path> generatedPaths = new ArrayList<Path>();
+    public List<String> outputMessages = new ArrayList<String>();
     public List<Path> failedChildDirectories = new ArrayList<Path>();
     public List<String> childFailureMessages = new ArrayList<String>();
     public List<String> logs = new ArrayList<String>();

@@ -94,7 +94,7 @@ class MikuIndexgenCliTest {
                 new PrintStream(stderrBuffer, true, "UTF-8"));
 
         assertEquals(0, exitCode);
-        assertEquals("miku-indexgen 1.3.0\n", stdoutBuffer.toString("UTF-8"));
+        assertEquals("miku-indexgen 1.4.4\n", stdoutBuffer.toString("UTF-8"));
         assertEquals("", stderrBuffer.toString("UTF-8"));
     }
 
@@ -176,7 +176,7 @@ class MikuIndexgenCliTest {
         String stderr = stderrBuffer.toString("UTF-8");
 
         assertEquals(0, exitCode);
-        assertTrue(stdout.contains("generated: "));
+        assertTrue(stdout.contains("add   : "));
         assertTrue(stdout.contains("completed: 1 subdirectories processed"));
         assertFalse(stdout.contains("verbose: "));
         assertTrue(stderr.contains("verbose: scanning-dir=."));

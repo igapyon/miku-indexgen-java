@@ -58,6 +58,10 @@ public class MikuIndexgenCli {
         }
         if (result.skipped()) {
             out.println("skip: " + result.skippedOutputPath);
+        } else if (!result.outputMessages.isEmpty()) {
+            for (String outputMessage : result.outputMessages) {
+                out.println(outputMessage);
+            }
         } else {
             for (java.nio.file.Path generatedPath : result.generatedPaths) {
                 out.println("generated: " + generatedPath);

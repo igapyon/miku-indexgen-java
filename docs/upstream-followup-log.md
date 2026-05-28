@@ -91,6 +91,9 @@ follow-up:
   - `2026-05-22`: copied upstream product-specific docs `input-files-spec.md`, `index-json-spec.md`, and `miku-indexgen-frontmatter-spec.md`; replaced copied shared `miku-soft-*` docs with `docs/miku-soft-reference.md`.
   - `2026-05-22`: followed up separated `miku-indexgen-java-maven` for runtime `1.3.0`; plugin tests, package, and smoke passed after local runtime install.
   - `2026-05-22`: `mvn test` passed.
+  - `2026-05-29`: fetched upstream `miku-indexgen` and followed `origin/devel` through `1ac90d0` / upstream `1.4.4`.
+  - `2026-05-29`: Java CLI output status labels now follow upstream `add   :`, `update:`, and `none  :` behavior.
+  - `2026-05-29`: Java version updated to `1.4.4`.
 ```
 
 ```text
