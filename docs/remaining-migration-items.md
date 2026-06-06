@@ -200,6 +200,21 @@ Implemented initial units:
   - Produced `target/miku-indexgen-1.5.0.jar`
   - Produced `target/miku-indexgen-1.5.0-sources.jar`
   - Produced `target/miku-indexgen-dist-1.5.0.zip`
+- `2026-06-07`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local upstream `origin/devel` advanced to `40539f4`
+  - Upstream tag `v1.5.1` was observed
+  - Java side followed upstream `1.5.1` metadata field role documentation in README and CLI help
+- `2026-06-07`: Maven coordinates updated to `1.5.1` to follow upstream `miku-indexgen` `1.5.1`
+  - Runtime: `jp.igapyon:miku-indexgen:1.5.1`
+  - CLI version output: `miku-indexgen 1.5.1`
+- `2026-06-07`: `mvn test`
+  - Single-module runtime build success
+  - Runtime tests run: 59
+- `2026-06-07`: `mvn package`
+  - Single-module runtime build success with version `1.5.1`
+  - Produced `target/miku-indexgen-1.5.1.jar`
+  - Produced `target/miku-indexgen-1.5.1-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.5.1.zip`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

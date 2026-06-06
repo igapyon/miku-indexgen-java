@@ -94,7 +94,7 @@ class MikuIndexgenCliTest {
                 new PrintStream(stderrBuffer, true, "UTF-8"));
 
         assertEquals(0, exitCode);
-        assertEquals("miku-indexgen 1.5.0\n", stdoutBuffer.toString("UTF-8"));
+        assertEquals("miku-indexgen 1.5.1\n", stdoutBuffer.toString("UTF-8"));
         assertEquals("", stderrBuffer.toString("UTF-8"));
     }
 
@@ -117,7 +117,14 @@ class MikuIndexgenCliTest {
         assertTrue(stdout.contains("Default behavior:"));
         assertTrue(stdout.contains("Child-directory batch mode:"));
         assertTrue(stdout.contains("Generated output:"));
+        assertTrue(stdout.contains("files[] is sorted by normalized relative path using UTF-16 code unit order."));
         assertTrue(stdout.contains("Markdown:"));
+        assertTrue(stdout.contains("front matter is parsed as YAML"));
+        assertTrue(stdout.contains("supported fields: title, description, topics, category, status, audience,"));
+        assertTrue(stdout.contains("title, description, and topics are primary scan-time file selection signals"));
+        assertTrue(stdout.contains("category, status, and audience help route which files to read next"));
+        assertTrue(stdout.contains("sources, created, and updated help judge provenance and freshness"));
+        assertTrue(stdout.contains("description is capped at 256 UTF-16 code units and may end with \"...\""));
         assertTrue(stdout.contains("JSON:"));
         assertTrue(stdout.contains("Options:"));
         assertTrue(stdout.contains("Examples:"));

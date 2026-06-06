@@ -98,6 +98,9 @@ follow-up:
   - `2026-06-06`: Java output ordering now follows upstream UTF-16 code unit order for POSIX-style relative paths.
   - `2026-06-06`: Java Markdown front matter `description` metadata is shortened to 256 UTF-16 code units, including the trailing `...`.
   - `2026-06-06`: Java version updated to `1.5.0`.
+  - `2026-06-07`: fetched upstream `miku-indexgen` and followed `origin/devel` through `40539f4` / upstream `1.5.1`.
+  - `2026-06-07`: Java CLI help and README now describe index metadata field roles added upstream.
+  - `2026-06-07`: Java version updated to `1.5.1`.
 ```
 
 ```text

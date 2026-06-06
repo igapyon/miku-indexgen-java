@@ -90,6 +90,10 @@ Usage rule:
 - child-directory batch mode aggregates child failures and exits non-zero when any child fails
 - outputs may be written under the input directory by default; the current run's `index.json` and optional `index.md` are excluded from `files[]`
 - generated `files[]` entries are ordered by POSIX-style relative paths using UTF-16 code unit order
+- supported Markdown front matter fields are `title`, `description`, `topics`, `category`, `status`, `audience`, `created`, `updated`, and `sources`
+- `title`, `description`, and `topics` are primary scan-time file selection signals
+- `category`, `status`, and `audience` help route which files to read next
+- `sources`, `created`, and `updated` help judge provenance and freshness
 - long Markdown front matter `description` values are shortened to 256 UTF-16 code units, including the trailing `...`
 
 ## Maven Plugin
