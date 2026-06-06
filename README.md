@@ -89,6 +89,8 @@ Usage rule:
 - `--no-recursive` controls scanning inside each selected input base; it does not change how child directories are selected in batch mode
 - child-directory batch mode aggregates child failures and exits non-zero when any child fails
 - outputs may be written under the input directory by default; the current run's `index.json` and optional `index.md` are excluded from `files[]`
+- generated `files[]` entries are ordered by POSIX-style relative paths using UTF-16 code unit order
+- long Markdown front matter `description` values are shortened to 256 UTF-16 code units, including the trailing `...`
 
 ## Maven Plugin
 

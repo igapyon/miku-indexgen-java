@@ -94,6 +94,10 @@ follow-up:
   - `2026-05-29`: fetched upstream `miku-indexgen` and followed `origin/devel` through `1ac90d0` / upstream `1.4.4`.
   - `2026-05-29`: Java CLI output status labels now follow upstream `add   :`, `update:`, and `none  :` behavior.
   - `2026-05-29`: Java version updated to `1.4.4`.
+  - `2026-06-06`: fetched upstream `miku-indexgen` and followed `origin/devel` through `b82d542` / upstream `1.5.0`.
+  - `2026-06-06`: Java output ordering now follows upstream UTF-16 code unit order for POSIX-style relative paths.
+  - `2026-06-06`: Java Markdown front matter `description` metadata is shortened to 256 UTF-16 code units, including the trailing `...`.
+  - `2026-06-06`: Java version updated to `1.5.0`.
 ```
 
 ```text

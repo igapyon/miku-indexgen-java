@@ -24,4 +24,8 @@ public final class PathUtils {
     public static String getFileName(String filePath) {
         return new File(filePath).getName();
     }
+
+    public static int compareUtf16CodeUnitStrings(String a, String b) {
+        return a.compareTo(b);
+    }
 }

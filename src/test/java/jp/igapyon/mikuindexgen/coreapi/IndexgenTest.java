@@ -444,30 +444,22 @@ class IndexgenTest {
     }
 
     @Test
-    void createIndexesSortsFilePathsUsingJapaneseLocaleOrder() throws Exception {
+    void createIndexesSortsFilePathsByPosixRelativePathUsingUtf16CodeUnitOrder() throws Exception {
         Path docsDir = tempDir.resolve("docs");
 
-        Files.createDirectories(docsDir);
-        Files.write(docsDir.resolve("b.md"), "# B\n".getBytes("UTF-8"));
-        Files.write(docsDir.resolve("a.md"), "# A\n".getBytes("UTF-8"));
-        Files.write(docsDir.resolve("い.md"), "# Hiragana I\n".getBytes("UTF-8"));
-        Files.write(docsDir.resolve("あ.md"), "# Hiragana\n".getBytes("UTF-8"));
+        Files.createDirectories(docsDir.resolve("B"));
+        Files.createDirectories(docsDir.resolve("a"));
+        Files.createDirectories(docsDir.resolve("あ"));
+        Files.write(docsDir.resolve("B").resolve("file.md"), "# B\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("a").resolve("file.md"), "# A\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("あ").resolve("file.md"), "# Japanese\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("Z.md"), "# Upper\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("a.md"), "# Lower\n".getBytes("UTF-8"));
 
         IndexgenOptions options = defaultOptions(docsDir);
         IndexgenResult result = new Indexgen().createIndexes(options);
 
-        java.text.Collator collator = java.text.Collator.getInstance(java.util.Locale.JAPANESE);
-        java.util.ArrayList<String> expected = new java.util.ArrayList<String>(
-                Arrays.asList("b.md", "a.md", "い.md", "あ.md"));
-        java.util.Collections.sort(expected, new java.util.Comparator<String>() {
-            @Override
-            public int compare(String left, String right) {
-                int result = collator.compare(left, right);
-                return result != 0 ? result : left.compareTo(right);
-            }
-        });
-
-        assertEquals(expected, paths(result.files));
+        assertEquals(Arrays.asList("B/file.md", "Z.md", "a.md", "a/file.md", "あ/file.md"), paths(result.files));
     }
 
     private IndexgenOptions defaultOptions(Path docsDir) {
