@@ -185,6 +185,21 @@ Implemented initial units:
 - `2026-05-29`: jar smoke checked output status labels
   - First run reported `add   :` for `index.json` and `index.md`
   - Second unchanged run reported `none  :` for `index.json` and `index.md`
+- `2026-06-06`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local upstream `origin/devel` advanced to `b82d542`
+  - Upstream tag `v1.5.0` was observed
+  - Java side followed upstream `1.5.0` runtime behavior for UTF-16 path ordering and front matter `description` truncation
+- `2026-06-06`: Maven coordinates updated to `1.5.0` to follow upstream `miku-indexgen` `1.5.0`
+  - Runtime: `jp.igapyon:miku-indexgen:1.5.0`
+  - CLI version output: `miku-indexgen 1.5.0`
+- `2026-06-06`: `mvn test`
+  - Single-module runtime build success
+  - Runtime tests run: 59
+- `2026-06-06`: `mvn package`
+  - Single-module runtime build success with version `1.5.0`
+  - Produced `target/miku-indexgen-1.5.0.jar`
+  - Produced `target/miku-indexgen-1.5.0-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.5.0.zip`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

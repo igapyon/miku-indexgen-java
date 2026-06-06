@@ -9,6 +9,7 @@ import jp.igapyon.mikuindexgen.model.IndexSource;
 
 final class MarkdownFrontMatterParser {
     private static final Pattern DATE_ONLY_PATTERN = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}$");
+    private static final int DESCRIPTION_MAX_LENGTH = 256;
 
     private MarkdownFrontMatterParser() {
     }
@@ -43,10 +44,10 @@ final class MarkdownFrontMatterParser {
             if ("description".equals(keyValue.key)) {
                 if (">".equals(keyValue.value)) {
                     FoldedBlock foldedBlock = readFoldedBlock(lines, index + 1);
-                    metadata.description = sanitizeMetadataString(foldedBlock.value);
+                    metadata.description = sanitizeDescription(foldedBlock.value);
                     index = foldedBlock.lastIndex;
                 } else {
-                    metadata.description = sanitizeMetadataString(keyValue.value);
+                    metadata.description = sanitizeDescription(keyValue.value);
                 }
                 continue;
             }
@@ -125,6 +126,11 @@ final class MarkdownFrontMatterParser {
         }
         String sanitized = Markdown.sanitizeTextForIndex(unquoteFrontMatterValue(value));
         return sanitized.length() == 0 ? null : sanitized;
+    }
+
+    private static String sanitizeDescription(String value) {
+        String sanitized = sanitizeMetadataString(value);
+        return sanitized == null ? null : Markdown.truncateTextForIndex(sanitized, DESCRIPTION_MAX_LENGTH);
     }
 
     private static String sanitizeDateOnly(String value) {

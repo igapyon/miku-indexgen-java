@@ -97,6 +97,18 @@ class MarkdownTest {
     }
 
     @Test
+    void extractFrontMatterTruncatesLongDescriptionMetadataWithAnEllipsis() {
+        Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter(String.join("\n",
+                "---",
+                "description: " + repeat("a", 300),
+                "---",
+                "# Body",
+                ""));
+
+        assertEquals(repeat("a", 253) + "...", result.metadata.description);
+    }
+
+    @Test
     void extractFrontMatterIgnoresUnknownFieldsAndUnsupportedDocumentedValueShapes() {
         Markdown.MarkdownFrontMatterResult result = Markdown.extractFrontMatter(String.join("\n",
                 "---",

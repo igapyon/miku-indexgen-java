@@ -77,9 +77,9 @@ Rules:
 
 `mvn package` currently produces these main artifacts:
 
-- `target/miku-indexgen-1.4.4.jar`
-- `target/miku-indexgen-1.4.4-sources.jar`
-- `target/miku-indexgen-dist-1.4.4.zip`
+- `target/miku-indexgen-1.5.0.jar`
+- `target/miku-indexgen-1.5.0-sources.jar`
+- `target/miku-indexgen-dist-1.5.0.zip`
 
 The GitHub release workflow currently uploads the runtime jar and runtime source jar artifacts for end users.
 

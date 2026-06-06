@@ -57,6 +57,20 @@ public final class Markdown {
         return builder.toString().replaceAll("\\s+", " ").trim();
     }
 
+    public static String truncateTextForIndex(String text, int maxLength) {
+        return truncateTextForIndex(text, maxLength, "...");
+    }
+
+    public static String truncateTextForIndex(String text, int maxLength, String omission) {
+        if (text.length() <= maxLength) {
+            return text;
+        }
+        if (maxLength <= omission.length()) {
+            return omission.substring(0, maxLength);
+        }
+        return text.substring(0, maxLength - omission.length()) + omission;
+    }
+
     public static String escapeMarkdownTableCell(String text) {
         return text
                 .replace("&", "&amp;")

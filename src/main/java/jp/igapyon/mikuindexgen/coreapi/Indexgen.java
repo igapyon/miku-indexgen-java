@@ -1,7 +1,6 @@
 package jp.igapyon.mikuindexgen.coreapi;
 
 import java.io.IOException;
-import java.text.Collator;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +10,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import jp.igapyon.mikuindexgen.encoding.Encoding;
@@ -28,7 +26,6 @@ public class Indexgen {
     private static final String GENERATOR_NAME = "miku-indexgen";
     private static final String JSON_OUTPUT_FILE_NAME = "index.json";
     private static final String MARKDOWN_OUTPUT_FILE_NAME = "index.md";
-    private static final Collator JAPANESE_COLLATOR = Collator.getInstance(Locale.JAPANESE);
 
     public List<Path> collectIndexableFiles(Path dirPath, boolean recursive, List<String> includeExtensions) throws IOException {
         Set<String> allowedExtensions = new LinkedHashSet<String>(includeExtensions);
@@ -415,7 +412,7 @@ public class Indexgen {
         Collections.sort(files, new Comparator<IndexFile>() {
             @Override
             public int compare(IndexFile a, IndexFile b) {
-                return compareJapanese(a.path, b.path);
+                return PathUtils.compareUtf16CodeUnitStrings(a.path, b.path);
             }
         });
         return files;
@@ -475,17 +472,10 @@ public class Indexgen {
         Collections.sort(entries, new Comparator<Path>() {
             @Override
             public int compare(Path a, Path b) {
-                return compareJapanese(a.getFileName().toString(), b.getFileName().toString());
+                return PathUtils.compareUtf16CodeUnitStrings(a.getFileName().toString(), b.getFileName().toString());
             }
         });
         return entries;
-    }
-
-    private static int compareJapanese(String a, String b) {
-        synchronized (JAPANESE_COLLATOR) {
-            int result = JAPANESE_COLLATOR.compare(a, b);
-            return result != 0 ? result : a.compareTo(b);
-        }
     }
 
     private double elapsedMs(long startNanos) {
