@@ -19,6 +19,7 @@ public class IndexgenOptions {
     public boolean verbose;
     public transient java.io.PrintStream verboseStream;
     public List<String> includeExtensions;
+    public List<String> excludeGlobs;
     public String inputEncoding = "utf8";
     public String outputEncoding = "utf8";
 
@@ -26,6 +27,7 @@ public class IndexgenOptions {
         includeExtensions = new ArrayList<String>();
         includeExtensions.add("md");
         includeExtensions.add("json");
+        excludeGlobs = new ArrayList<String>();
     }
 
     public static IndexgenOptions fromCliOptions(CliOptions cliOptions) {
@@ -42,6 +44,7 @@ public class IndexgenOptions {
         options.overwrite = cliOptions.overwrite;
         options.verbose = cliOptions.verbose;
         options.includeExtensions = copyList(cliOptions.includeExtensions);
+        options.excludeGlobs = copyList(cliOptions.excludeGlobs);
         options.inputEncoding = cliOptions.inputEncoding;
         options.outputEncoding = cliOptions.outputEncoding;
         return options;

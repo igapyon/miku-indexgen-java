@@ -29,7 +29,16 @@ public class Indexgen {
 
     public List<Path> collectIndexableFiles(Path dirPath, boolean recursive, List<String> includeExtensions) throws IOException {
         Set<String> allowedExtensions = new LinkedHashSet<String>(includeExtensions);
-        return collectIndexableFilesWithSet(dirPath, recursive, allowedExtensions, listVisibleEntries(dirPath));
+        return collectIndexableFilesWithSet(dirPath, dirPath, recursive, allowedExtensions, new ArrayList<String>(),
+                listVisibleEntries(dirPath));
+    }
+
+    public List<Path> collectIndexableFiles(Path dirPath, boolean recursive, List<String> includeExtensions,
+            List<String> excludeGlobs) throws IOException {
+        Set<String> allowedExtensions = new LinkedHashSet<String>(includeExtensions);
+        List<String> normalizedExcludeGlobs = ExcludeGlob.normalizeExcludeGlobPatterns(excludeGlobs);
+        return collectIndexableFilesWithSet(dirPath, dirPath, recursive, allowedExtensions, normalizedExcludeGlobs,
+                listVisibleEntries(dirPath));
     }
 
     public String buildIndexContent(String title, Path targetPath, List<IndexFile> files, Path outputPath,
@@ -240,6 +249,7 @@ public class Indexgen {
         childOptions.verbose = options.verbose;
         childOptions.verboseStream = options.verboseStream;
         childOptions.includeExtensions = copyList(options.includeExtensions);
+        childOptions.excludeGlobs = copyList(options.excludeGlobs);
         childOptions.inputEncoding = options.inputEncoding;
         childOptions.outputEncoding = options.outputEncoding;
         return childOptions;
@@ -364,14 +374,15 @@ public class Indexgen {
         return summary;
     }
 
-    private List<Path> collectIndexableFilesWithSet(Path dirPath, boolean recursive, Set<String> includeExtensions,
-            List<Path> entries) throws IOException {
+    private List<Path> collectIndexableFilesWithSet(Path rootPath, Path dirPath, boolean recursive,
+            Set<String> includeExtensions, List<String> excludeGlobs, List<Path> entries) throws IOException {
         List<Path> files = new ArrayList<Path>();
 
         for (Path fullPath : entries) {
             if (Files.isDirectory(fullPath)) {
                 if (recursive) {
-                    files.addAll(collectIndexableFilesWithSet(fullPath, recursive, includeExtensions, listVisibleEntries(fullPath)));
+                    files.addAll(collectIndexableFilesWithSet(rootPath, fullPath, recursive, includeExtensions,
+                            excludeGlobs, listVisibleEntries(fullPath)));
                 }
                 continue;
             }
@@ -381,6 +392,10 @@ public class Indexgen {
 
             String extension = PathUtils.getFileExtension(fullPath.toString());
             if (extension.length() > 0 && includeExtensions.contains(extension)) {
+                String relativePath = PathUtils.toPosixPath(rootPath.relativize(fullPath).toString());
+                if (ExcludeGlob.matchesAnyExcludeGlob(relativePath, excludeGlobs)) {
+                    continue;
+                }
                 files.add(fullPath);
             }
         }
@@ -393,7 +408,8 @@ public class Indexgen {
         logger.log("scanning-dir=.");
 
         long collectStart = System.nanoTime();
-        List<Path> indexableFiles = collectIndexableFiles(targetPath, options.recursive, options.includeExtensions);
+        List<Path> indexableFiles = collectIndexableFiles(targetPath, options.recursive, options.includeExtensions,
+                options.excludeGlobs);
         List<Path> filteredFiles = new ArrayList<Path>();
         for (Path filePath : indexableFiles) {
             if (!isGeneratedOutputPath(filePath, outputPaths)) {

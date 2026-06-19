@@ -60,6 +60,20 @@ focused regression:
 
 ```text
 upstream test / intent:
+  test/glob.test.ts
+
+java tests:
+  jp.igapyon.mikuindexgen.coreapi.ExcludeGlobTest
+
+fixtures:
+  inline paths and glob patterns
+
+focused regression:
+  mvn test -Dtest=ExcludeGlobTest
+```
+
+```text
+upstream test / intent:
   test/cli.test.ts
 
 java tests:

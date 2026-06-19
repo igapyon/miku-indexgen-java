@@ -101,6 +101,10 @@ follow-up:
   - `2026-06-07`: fetched upstream `miku-indexgen` and followed `origin/devel` through `40539f4` / upstream `1.5.1`.
   - `2026-06-07`: Java CLI help and README now describe index metadata field roles added upstream.
   - `2026-06-07`: Java version updated to `1.5.1`.
+  - `2026-06-20`: fetched upstream `miku-indexgen` and followed `origin/devel` through `e170844` / upstream `1.6.0`.
+  - `2026-06-20`: Java runtime now supports repeatable `--exclude-glob` with `*`, `?`, and `**` matching against input-relative POSIX paths.
+  - `2026-06-20`: Java generation metadata now stores `excludeGlobs` so `--refresh-index` keeps the same exclusion rules.
+  - `2026-06-20`: Java version updated to `1.6.0`.
 ```
 
 ```text

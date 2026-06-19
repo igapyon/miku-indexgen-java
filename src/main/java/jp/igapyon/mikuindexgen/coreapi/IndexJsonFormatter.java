@@ -84,6 +84,10 @@ final class IndexJsonFormatter {
         builder.append(quote("markdownOutput")).append(":").append(generation.markdownOutput).append(",");
         builder.append(quote("recursive")).append(":").append(generation.recursive).append(",");
         builder.append(quote("includeExtensions")).append(":").append(buildStringArrayJson(generation.includeExtensions)).append(",");
+        if (generation.excludeGlobs != null && !generation.excludeGlobs.isEmpty()) {
+            builder.append(quote("excludeGlobs")).append(":").append(buildStringArrayJson(generation.excludeGlobs))
+                    .append(",");
+        }
         builder.append(quote("inputEncoding")).append(":").append(quote(generation.inputEncoding)).append(",");
         builder.append(quote("outputEncoding")).append(":").append(quote(generation.outputEncoding));
         if (generation.jsonSummaryPaths != null) {

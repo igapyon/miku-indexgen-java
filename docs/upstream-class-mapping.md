@@ -70,6 +70,18 @@ notes:
 
 ```text
 upstream file:
+  workplace/miku-indexgen/src/glob.ts
+
+java classes:
+  jp.igapyon.mikuindexgen.coreapi.ExcludeGlob
+
+notes:
+  - Java follows upstream normalization and matching for repeatable `--exclude-glob`.
+  - Supported syntax is intentionally limited to `*`, `?`, and `**`.
+```
+
+```text
+upstream file:
   workplace/miku-indexgen/src/cli.ts
 
 java classes:
@@ -80,6 +92,7 @@ java classes:
 notes:
   - Initial conversion covers parseArgs, parseIncludeExtensions, and printHelp.
   - CLI converts parsed arguments into core IndexgenOptions.
+  - `--exclude-glob` is parsed as a repeatable option and normalized before conversion.
 ```
 
 ```text
@@ -91,6 +104,7 @@ upstream file:
 java classes:
   jp.igapyon.mikuindexgen.coreapi.IndexJsonFormatter
   jp.igapyon.mikuindexgen.coreapi.Generation
+  jp.igapyon.mikuindexgen.coreapi.ExcludeGlob
   jp.igapyon.mikuindexgen.coreapi.Indexgen
   jp.igapyon.mikuindexgen.coreapi.IndexgenOptions
   jp.igapyon.mikuindexgen.coreapi.IndexgenResult
@@ -101,6 +115,7 @@ notes:
   - Separated adapters can call Indexgen.createIndexes(IndexgenOptions).
   - JSON output formatting follows upstream `formatIndexJson` so each file entry is emitted as one search-friendly line.
   - Output write status follows upstream `add` / `update` / `none` labels and is exposed through `IndexgenResult.outputMessages`.
+  - `excludeGlobs` are applied after extension filtering and stored in generation metadata.
 ```
 
 ```text
