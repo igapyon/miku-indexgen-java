@@ -33,6 +33,8 @@ class MikuIndexgenCliTest {
                 "--no-recursive",
                 "--no-overwrite",
                 "--include-ext", "md,json",
+                "--exclude-glob", " **\\images\\* ",
+                "--exclude-glob", "**/images/*",
                 "--input-encoding", "ShiftJIS",
                 "--output-encoding", "shift-jis",
                 "--verbose"
@@ -48,6 +50,7 @@ class MikuIndexgenCliTest {
         assertFalse(options.overwrite);
         assertTrue(options.verbose);
         assertEquals(Arrays.asList("md", "json"), options.includeExtensions);
+        assertEquals(Arrays.asList("**/images/*"), options.excludeGlobs);
         assertEquals("shift_jis", options.inputEncoding);
         assertEquals("shift_jis", options.outputEncoding);
     }
@@ -94,7 +97,7 @@ class MikuIndexgenCliTest {
                 new PrintStream(stderrBuffer, true, "UTF-8"));
 
         assertEquals(0, exitCode);
-        assertEquals("miku-indexgen 1.5.1\n", stdoutBuffer.toString("UTF-8"));
+        assertEquals("miku-indexgen 1.6.0\n", stdoutBuffer.toString("UTF-8"));
         assertEquals("", stderrBuffer.toString("UTF-8"));
     }
 
@@ -111,27 +114,7 @@ class MikuIndexgenCliTest {
         String stdout = stdoutBuffer.toString("UTF-8");
         assertEquals(0, exitCode);
         assertEquals("", stderrBuffer.toString("UTF-8"));
-        assertTrue(stdout.contains("miku-indexgen --input-directory <dir>"));
-        assertTrue(stdout.contains("miku-indexgen --input-parent-directory <dir>"));
-        assertTrue(stdout.contains("miku-indexgen --refresh-index <index.json>"));
-        assertTrue(stdout.contains("Default behavior:"));
-        assertTrue(stdout.contains("Child-directory batch mode:"));
-        assertTrue(stdout.contains("Generated output:"));
-        assertTrue(stdout.contains("files[] is sorted by normalized relative path using UTF-16 code unit order."));
-        assertTrue(stdout.contains("Markdown:"));
-        assertTrue(stdout.contains("front matter is parsed as YAML"));
-        assertTrue(stdout.contains("supported fields: title, description, topics, category, status, audience,"));
-        assertTrue(stdout.contains("title, description, and topics are primary scan-time file selection signals"));
-        assertTrue(stdout.contains("category, status, and audience help route which files to read next"));
-        assertTrue(stdout.contains("sources, created, and updated help judge provenance and freshness"));
-        assertTrue(stdout.contains("description is capped at 256 UTF-16 code units and may end with \"...\""));
-        assertTrue(stdout.contains("JSON:"));
-        assertTrue(stdout.contains("Options:"));
-        assertTrue(stdout.contains("Examples:"));
-        assertTrue(stdout.contains("References:"));
-        assertTrue(stdout.contains("docs/input-files-spec.md"));
-        assertTrue(stdout.contains("docs/index-json-spec.md"));
-        assertTrue(stdout.contains("docs/miku-indexgen-frontmatter-spec.md"));
+        assertEquals(expectedHelpText(), stdout);
     }
 
     @Test
@@ -300,5 +283,97 @@ class MikuIndexgenCliTest {
         assertFalse(stdout.contains("verbose: "));
         assertTrue(stderr.contains("verbose: reading-file=a.md"));
         assertTrue(stderr.contains("verbose: reading-file=b.md"));
+    }
+
+    private String expectedHelpText() {
+        return "Usage:\n"
+                + "  miku-indexgen --input-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--exclude-glob \"**/images/*\"] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen --input-parent-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--exclude-glob \"**/images/*\"] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen --refresh-index <index.json> [--no-overwrite] [--verbose]\n"
+                + "\n"
+                + "Description:\n"
+                + "  Scan a directory and generate index.json. With --markdown, also generate\n"
+                + "  index.md. Generated files are artifacts; do not edit them by hand. Rerun\n"
+                + "  miku-indexgen or use --refresh-index to update them.\n"
+                + "\n"
+                + "Default behavior:\n"
+                + "  - recursively scans the input directory\n"
+                + "  - indexes md,json files by default\n"
+                + "  - applies --exclude-glob after extension filtering\n"
+                + "  - skips files and directories starting with \".\"\n"
+                + "  - writes outputs under the input directory unless --output-directory is set\n"
+                + "  - excludes the current run's index.json/index.md from files[]\n"
+                + "  - stores generation metadata in index.json for later refresh\n"
+                + "\n"
+                + "Child-directory batch mode:\n"
+                + "  --input-parent-directory processes each direct visible child directory as an\n"
+                + "  independent input base. Direct child files are ignored. With a shared\n"
+                + "  --output-directory, outputs are written under child-specific directories.\n"
+                + "  Child failures are aggregated; remaining children are still processed and\n"
+                + "  the command exits non-zero when any child fails.\n"
+                + "\n"
+                + "Exclude glob:\n"
+                + "  --exclude-glob is evaluated against paths relative to the input directory\n"
+                + "  after --include-ext. Separators are normalized to \"/\". Matching is\n"
+                + "  case-sensitive. Supported glob syntax is only *, ?, and **. Character\n"
+                + "  classes, brace expansion, extglob, regular expressions, and OS-dependent\n"
+                + "  separators are not supported.\n"
+                + "\n"
+                + "Generated output:\n"
+                + "  index.json contains title, generator, generation, basePath, and files[].\n"
+                + "  files[] entries include name, path, ext, dir, size, optional Markdown\n"
+                + "  metadata, and optional summary.\n"
+                + "  files[] is sorted by normalized relative path using UTF-16 code unit order.\n"
+                + "  When outputs are written, the CLI reports aligned add   :, update:, or none  :\n"
+                + "  labels for each file.\n"
+                + "\n"
+                + "Markdown:\n"
+                + "  - summary is extracted from the first heading or leading body text\n"
+                + "  - front matter is parsed as YAML\n"
+                + "  - supported fields: title, description, topics, category, status, audience,\n"
+                + "    created, updated, sources\n"
+                + "  - title, description, and topics are primary scan-time file selection signals\n"
+                + "  - category, status, and audience help route which files to read next\n"
+                + "  - sources, created, and updated help judge provenance and freshness\n"
+                + "  - description is capped at 256 UTF-16 code units and may end with \"...\"\n"
+                + "  - unknown fields and unsupported shapes are ignored\n"
+                + "\n"
+                + "JSON:\n"
+                + "  - summary is omitted by default\n"
+                + "  - use --json-summary-path /title,/name to extract the first matching string\n"
+                + "\n"
+                + "Options:\n"
+                + "  --input-directory <dir>        Directory to scan.\n"
+                + "  --input-parent-directory <dir> Process direct child directories independently.\n"
+                + "  --refresh-index <index.json>   Regenerate an existing index from generation metadata.\n"
+                + "  --output-directory <dir>       Directory for index.json and optional index.md.\n"
+                + "  --title <text>                 Root title in index.json.\n"
+                + "  --markdown                     Also generate index.md.\n"
+                + "  --no-generator                 Omit root generator metadata.\n"
+                + "  --json-summary-path <paths>    Comma-separated JSON Pointer paths.\n"
+                + "  --no-recursive                 Scan only immediate files.\n"
+                + "  --no-overwrite                 Skip if output already exists.\n"
+                + "  --include-ext <exts>           Comma-separated extensions. Default: md,json.\n"
+                + "  --exclude-glob <pattern>       Exclude input-relative POSIX paths matching * ? **.\n"
+                + "                                 Repeatable. Stored in generation metadata.\n"
+                + "  --input-encoding <encoding>    utf8 or shift_jis. Default: utf8.\n"
+                + "  --output-encoding <encoding>   utf8 or shift_jis. Default: utf8.\n"
+                + "  --verbose                      Print progress and timing details.\n"
+                + "  --version                      Print version.\n"
+                + "  --help                         Print this help.\n"
+                + "\n"
+                + "Examples:\n"
+                + "  miku-indexgen --input-directory docs\n"
+                + "  miku-indexgen --input-directory docs --markdown\n"
+                + "  miku-indexgen --input-directory docs --output-directory workplace --markdown\n"
+                + "  miku-indexgen --input-parent-directory docs-parent --output-directory out --markdown\n"
+                + "  miku-indexgen --input-directory docs --json-summary-path /title,/name\n"
+                + "  miku-indexgen --input-directory docs --include-ext md --exclude-glob \"**/images/*\" --exclude-glob \"**/section-text.md\"\n"
+                + "  miku-indexgen --refresh-index workplace/index.json\n"
+                + "\n"
+                + "References:\n"
+                + "  docs/input-files-spec.md\n"
+                + "  docs/index-json-spec.md\n"
+                + "  docs/miku-indexgen-frontmatter-spec.md\n";
     }
 }

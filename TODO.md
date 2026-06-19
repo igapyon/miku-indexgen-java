@@ -119,3 +119,16 @@ upstream follow-up. Keep them small and run `mvn test` after each slice.
 
 - Done: move the JSON parser out of `jsonsummary` into `jp.igapyon.mikuindexgen.json.JsonParser` for shared runtime JSON parsing.
 - Done: keep product behavior in runtime classes and keep shared miku-soft guidance referenced through `docs/miku-soft-reference.md`, not copied back into the repository.
+
+## 1.6.0 Follow-up
+
+The Java runtime followed upstream `miku-indexgen` `1.6.0` behavior for
+repeatable `--exclude-glob` input-file exclusion.
+
+Completed items:
+
+- Done: fetched upstream `miku-indexgen` and observed `origin/devel` `e170844` / tag `v1.6.0`.
+- Done: added Java `ExcludeGlob` support for `*`, `?`, and `**` against input-relative POSIX paths.
+- Done: added CLI `--exclude-glob` parsing, normalization, repeatable option handling, and help text.
+- Done: stored selected exclude globs in `generation.excludeGlobs` so `--refresh-index` preserves exclusions.
+- Done: updated README, input files spec, index JSON spec, upstream mapping docs, and version references for `1.6.0`.

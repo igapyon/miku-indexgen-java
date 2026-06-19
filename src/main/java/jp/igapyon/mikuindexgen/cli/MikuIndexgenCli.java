@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import jp.igapyon.mikuindexgen.coreapi.IndexgenBatchException;
+import jp.igapyon.mikuindexgen.coreapi.ExcludeGlob;
 import jp.igapyon.mikuindexgen.coreapi.Indexgen;
+import jp.igapyon.mikuindexgen.coreapi.IndexgenBatchException;
 import jp.igapyon.mikuindexgen.coreapi.IndexgenOptions;
 import jp.igapyon.mikuindexgen.coreapi.IndexgenResult;
 import jp.igapyon.mikuindexgen.encoding.Encoding;
@@ -119,6 +120,7 @@ public class MikuIndexgenCli {
         for (String extension : DEFAULT_INCLUDE_EXTENSIONS) {
             options.includeExtensions.add(extension);
         }
+        options.excludeGlobs = new ArrayList<String>();
         options.inputEncoding = DEFAULT_TEXT_ENCODING;
         options.outputEncoding = DEFAULT_TEXT_ENCODING;
 
@@ -189,6 +191,12 @@ public class MikuIndexgenCli {
                 continue;
             }
 
+            if ("--exclude-glob".equals(arg)) {
+                options.excludeGlobs.add(readRequiredOptionValue(argv, i, "--exclude-glob", "a glob pattern"));
+                i++;
+                continue;
+            }
+
             if ("--input-encoding".equals(arg)) {
                 options.inputEncoding = Encoding.parseEncodingOption(
                         readRequiredOptionValue(argv, i, "--input-encoding", "an encoding"));
@@ -229,6 +237,7 @@ public class MikuIndexgenCli {
         if (inputModes == 0) {
             throw new IllegalArgumentException("Please specify --input-directory, --input-parent-directory, or --refresh-index.");
         }
+        options.excludeGlobs = ExcludeGlob.normalizeExcludeGlobPatterns(options.excludeGlobs);
         return options;
     }
 

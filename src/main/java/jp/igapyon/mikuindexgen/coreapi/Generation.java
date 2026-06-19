@@ -23,6 +23,7 @@ public final class Generation {
         generation.markdownOutput = options.markdownOutput;
         generation.recursive = options.recursive;
         generation.includeExtensions = copyList(options.includeExtensions);
+        generation.excludeGlobs = ExcludeGlob.normalizeExcludeGlobPatterns(options.excludeGlobs);
         generation.inputEncoding = options.inputEncoding;
         generation.outputEncoding = options.outputEncoding;
         if (options.jsonSummaryPaths != null && !options.jsonSummaryPaths.isEmpty()) {
@@ -70,6 +71,7 @@ public final class Generation {
         refreshOptions.verbose = options.verbose;
         refreshOptions.verboseStream = options.verboseStream;
         refreshOptions.includeExtensions = copyList(generation.includeExtensions);
+        refreshOptions.excludeGlobs = copyList(generation.excludeGlobs);
         refreshOptions.inputEncoding = generation.inputEncoding;
         refreshOptions.outputEncoding = generation.outputEncoding;
         return refreshOptions;
@@ -85,6 +87,9 @@ public final class Generation {
         generation.markdownOutput = booleanValue(value.get("markdownOutput"), "markdownOutput");
         generation.recursive = booleanValue(value.get("recursive"), "recursive");
         generation.includeExtensions = stringArrayValue(value.get("includeExtensions"), "includeExtensions");
+        if (value.containsKey("excludeGlobs")) {
+            generation.excludeGlobs = stringArrayValue(value.get("excludeGlobs"), "excludeGlobs");
+        }
         generation.inputEncoding = stringValue(value.get("inputEncoding"), "inputEncoding");
         generation.outputEncoding = stringValue(value.get("outputEncoding"), "outputEncoding");
         if (value.containsKey("jsonSummaryPaths")) {

@@ -15,6 +15,7 @@ public class CliOptions {
     public boolean overwrite;
     public boolean verbose;
     public List<String> includeExtensions;
+    public List<String> excludeGlobs;
     public String inputEncoding;
     public String outputEncoding;
 }

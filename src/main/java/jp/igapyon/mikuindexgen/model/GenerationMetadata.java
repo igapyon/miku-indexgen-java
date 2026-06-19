@@ -8,6 +8,7 @@ public class GenerationMetadata {
     public boolean markdownOutput;
     public boolean recursive;
     public List<String> includeExtensions;
+    public List<String> excludeGlobs;
     public String inputEncoding;
     public String outputEncoding;
     public List<String> jsonSummaryPaths;

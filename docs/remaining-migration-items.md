@@ -215,6 +215,28 @@ Implemented initial units:
   - Produced `target/miku-indexgen-1.5.1.jar`
   - Produced `target/miku-indexgen-1.5.1-sources.jar`
   - Produced `target/miku-indexgen-dist-1.5.1.zip`
+- `2026-06-20`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local upstream `origin/devel` advanced to `e170844`
+  - Upstream tag `v1.6.0` was observed
+  - Java side followed upstream `1.6.0` runtime behavior for repeatable `--exclude-glob`
+- `2026-06-20`: Maven coordinates updated to `1.6.0` to follow upstream `miku-indexgen` `1.6.0`
+  - Runtime: `jp.igapyon:miku-indexgen:1.6.0`
+  - CLI version output: `miku-indexgen 1.6.0`
+- `2026-06-20`: focused regression
+  - `mvn test -Dtest=ExcludeGlobTest,IndexgenTest,MikuIndexgenCliTest` passed
+  - Focused tests run: 36
+- `2026-06-20`: `mvn test`
+  - Single-module runtime build success
+  - Runtime tests run: 64
+- `2026-06-20`: `mvn package`
+  - Single-module runtime build success with version `1.6.0`
+  - Produced `target/miku-indexgen-1.6.0.jar`
+  - Produced `target/miku-indexgen-1.6.0-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.6.0.zip`
+- `2026-06-20`: jar smoke checked `--version` and `--exclude-glob`
+  - `java -jar target/miku-indexgen-1.6.0.jar --version` printed `miku-indexgen 1.6.0`
+  - `--exclude-glob '*followup*'` was stored in `generation.excludeGlobs`
+  - Excluded `docs/upstream-followup-log.md` did not appear in the generated smoke index
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

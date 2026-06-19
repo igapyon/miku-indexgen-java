@@ -246,6 +246,44 @@ class IndexgenTest {
     }
 
     @Test
+    void createIndexesExcludesFilesByInputRelativeGlobAfterExtensionFiltering() throws Exception {
+        Path docsDir = tempDir.resolve("docs");
+
+        Files.createDirectories(docsDir.resolve("2026").resolve("05").resolve("images-ai-native").resolve("src")
+                .resolve("sections").resolve("001"));
+        Files.createDirectories(docsDir.resolve("2026").resolve("05").resolve("article"));
+        Files.write(docsDir.resolve("2026").resolve("05").resolve("article").resolve("main.md"),
+                "# Main\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("2026").resolve("05").resolve("article").resolve("note-image-recovery.md"),
+                "# Recovery\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("2026").resolve("05").resolve("images-ai-native").resolve("src")
+                .resolve("sections").resolve("001").resolve("image-prompt.md"), "# Prompt\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("2026").resolve("05").resolve("images-ai-native").resolve("src")
+                .resolve("sections").resolve("001").resolve("section-text.md"), "# Section\n".getBytes("UTF-8"));
+        Files.write(docsDir.resolve("2026").resolve("05").resolve("article").resolve("data.json"),
+                "{\"title\":\"Data\"}\n".getBytes("UTF-8"));
+
+        IndexgenOptions options = defaultOptions(docsDir);
+        options.includeExtensions = Arrays.asList("md");
+        options.excludeGlobs = Arrays.asList(
+                "**/images-*/*",
+                "**/note-image-recovery.md",
+                "**/image-prompt.md",
+                "**/section-text.md");
+
+        IndexgenResult result = new Indexgen().createIndexes(options);
+        String index = new String(Files.readAllBytes(docsDir.resolve("index.json")), "UTF-8");
+
+        assertEquals(Arrays.asList("2026/05/article/main.md"), paths(result.files));
+        assertTrue(index.contains("\"includeExtensions\":[\"md\"]"));
+        assertTrue(index.contains("\"excludeGlobs\":[\"**/images-*/*\",\"**/note-image-recovery.md\",\"**/image-prompt.md\",\"**/section-text.md\"]"));
+        assertFalse(index.contains("data.json"));
+        assertFalse(index.contains("\"path\":\"2026/05/article/note-image-recovery.md\""));
+        assertFalse(index.contains("\"path\":\"2026/05/images-ai-native/src/sections/001/image-prompt.md\""));
+        assertFalse(index.contains("\"path\":\"2026/05/images-ai-native/src/sections/001/section-text.md\""));
+    }
+
+    @Test
     void buildIndexContentEscapesLineBreaksInsideFileEntriesWithoutSplittingTheRecordLine() throws Exception {
         Path docsDir = tempDir.resolve("docs");
         Files.createDirectories(docsDir);
