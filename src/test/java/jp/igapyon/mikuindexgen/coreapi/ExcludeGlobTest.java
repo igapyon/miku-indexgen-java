@@ -25,9 +25,16 @@ class ExcludeGlobTest {
     }
 
     @Test
+    void distinguishesOneLevelAndRecursiveImagesDirectoryExcludes() {
+        assertTrue(ExcludeGlob.matchesExcludeGlob("2026/05/images-ai-native/file.md", "**/images-*/*"));
+        assertFalse(ExcludeGlob.matchesExcludeGlob("2026/05/images-ai-native/src/graphic-recording-text.md", "**/images-*/*"));
+        assertTrue(ExcludeGlob.matchesExcludeGlob("2026/05/images-ai-native/src/sections/001/image-prompt.md", "**/images-*/**"));
+    }
+
+    @Test
     void matchesAnyConfiguredExcludeGlob() {
         assertTrue(ExcludeGlob.matchesAnyExcludeGlob("2026/05/images-ai-native/src/sections/001/section-text.md",
-                Arrays.asList("**/images-*/*", "**/section-text.md")));
+                Arrays.asList("**/images-*/**", "**/section-text.md")));
         assertFalse(ExcludeGlob.matchesAnyExcludeGlob("2026/05/article.md",
                 Arrays.asList("**/images/*", "**/section-text.md")));
     }

@@ -287,8 +287,8 @@ class MikuIndexgenCliTest {
 
     private String expectedHelpText() {
         return "Usage:\n"
-                + "  miku-indexgen --input-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--exclude-glob \"**/images/*\"] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
-                + "  miku-indexgen --input-parent-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--exclude-glob \"**/images/*\"] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen --input-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--exclude-glob \"**/images/**\"] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
+                + "  miku-indexgen --input-parent-directory <dir> [--output-directory <dir>] [--title \"Docs Index\"] [--markdown] [--no-generator] [--json-summary-path /title,/name] [--no-recursive] [--no-overwrite] [--include-ext md,json] [--exclude-glob \"**/images/**\"] [--input-encoding utf8] [--output-encoding utf8] [--verbose]\n"
                 + "  miku-indexgen --refresh-index <index.json> [--no-overwrite] [--verbose]\n"
                 + "\n"
                 + "Description:\n"
@@ -317,7 +317,7 @@ class MikuIndexgenCliTest {
                 + "  after --include-ext. Separators are normalized to \"/\". Matching is\n"
                 + "  case-sensitive. Supported glob syntax is only *, ?, and **. Character\n"
                 + "  classes, brace expansion, extglob, regular expressions, and OS-dependent\n"
-                + "  separators are not supported.\n"
+                + "  separators are not supported. Use /** for recursive directory-tree excludes.\n"
                 + "\n"
                 + "Generated output:\n"
                 + "  index.json contains title, generator, generation, basePath, and files[].\n"
@@ -368,7 +368,7 @@ class MikuIndexgenCliTest {
                 + "  miku-indexgen --input-directory docs --output-directory workplace --markdown\n"
                 + "  miku-indexgen --input-parent-directory docs-parent --output-directory out --markdown\n"
                 + "  miku-indexgen --input-directory docs --json-summary-path /title,/name\n"
-                + "  miku-indexgen --input-directory docs --include-ext md --exclude-glob \"**/images/*\" --exclude-glob \"**/section-text.md\"\n"
+                + "  miku-indexgen --input-directory docs --include-ext md --exclude-glob \"**/images-*/**\" --exclude-glob \"**/images/**\"\n"
                 + "  miku-indexgen --refresh-index workplace/index.json\n"
                 + "\n"
                 + "References:\n"
