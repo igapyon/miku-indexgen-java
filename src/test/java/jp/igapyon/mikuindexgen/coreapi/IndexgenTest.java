@@ -246,7 +246,7 @@ class IndexgenTest {
     }
 
     @Test
-    void createIndexesExcludesFilesByInputRelativeGlobAfterExtensionFiltering() throws Exception {
+    void createIndexesExcludesFilesByRecursiveInputRelativeGlobAfterExtensionFiltering() throws Exception {
         Path docsDir = tempDir.resolve("docs");
 
         Files.createDirectories(docsDir.resolve("2026").resolve("05").resolve("images-ai-native").resolve("src")
@@ -266,7 +266,7 @@ class IndexgenTest {
         IndexgenOptions options = defaultOptions(docsDir);
         options.includeExtensions = Arrays.asList("md");
         options.excludeGlobs = Arrays.asList(
-                "**/images-*/*",
+                "**/images-*/**",
                 "**/note-image-recovery.md",
                 "**/image-prompt.md",
                 "**/section-text.md");
@@ -276,7 +276,7 @@ class IndexgenTest {
 
         assertEquals(Arrays.asList("2026/05/article/main.md"), paths(result.files));
         assertTrue(index.contains("\"includeExtensions\":[\"md\"]"));
-        assertTrue(index.contains("\"excludeGlobs\":[\"**/images-*/*\",\"**/note-image-recovery.md\",\"**/image-prompt.md\",\"**/section-text.md\"]"));
+        assertTrue(index.contains("\"excludeGlobs\":[\"**/images-*/**\",\"**/note-image-recovery.md\",\"**/image-prompt.md\",\"**/section-text.md\"]"));
         assertFalse(index.contains("data.json"));
         assertFalse(index.contains("\"path\":\"2026/05/article/note-image-recovery.md\""));
         assertFalse(index.contains("\"path\":\"2026/05/images-ai-native/src/sections/001/image-prompt.md\""));
