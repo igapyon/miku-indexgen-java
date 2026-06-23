@@ -237,6 +237,24 @@ Implemented initial units:
   - `java -jar target/miku-indexgen-1.6.0.jar --version` printed `miku-indexgen 1.6.0`
   - `--exclude-glob '*followup*'` was stored in `generation.excludeGlobs`
   - Excluded `docs/upstream-followup-log.md` did not appear in the generated smoke index
+- `2026-06-23`: upstream `miku-indexgen` fetched under `workplace/miku-indexgen`
+  - Local upstream `origin/devel` advanced to `daf1e2b`
+  - Upstream tags `v1.6.1` and `v1.6.2` were observed
+  - Java side already matched upstream `1.6.1` child-directory batch behavior through `--input-parent-directory`
+  - Java docs followed upstream `1.6.2` Markdown front matter examples
+- `2026-06-23`: Maven coordinates updated to `1.6.2` to follow upstream `miku-indexgen` `1.6.2`
+  - Runtime: `jp.igapyon:miku-indexgen:1.6.2`
+  - CLI version output: `miku-indexgen 1.6.2`
+- `2026-06-23`: `mvn test`
+  - Single-module runtime build success
+  - Runtime tests run: 65
+- `2026-06-23`: `mvn package`
+  - Single-module runtime build success with version `1.6.2`
+  - Produced `target/miku-indexgen-1.6.2.jar`
+  - Produced `target/miku-indexgen-1.6.2-sources.jar`
+  - Produced `target/miku-indexgen-dist-1.6.2.zip`
+- `2026-06-23`: jar smoke checked `--version`
+  - `java -jar target/miku-indexgen-1.6.2.jar --version` printed `miku-indexgen 1.6.2`
 - `2026-04-22`: Maven plugin XML configuration examples added to README and development docs
 - `2026-04-22`: straight conversion guide updated to describe optional Maven plugin modules and the resulting multi-module layout
 - `2026-04-22`: `mvn package`

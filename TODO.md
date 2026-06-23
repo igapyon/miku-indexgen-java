@@ -132,3 +132,18 @@ Completed items:
 - Done: added CLI `--exclude-glob` parsing, normalization, repeatable option handling, and help text.
 - Done: stored selected exclude globs in `generation.excludeGlobs` so `--refresh-index` preserves exclusions.
 - Done: updated README, input files spec, index JSON spec, upstream mapping docs, and version references for `1.6.0`.
+
+## 1.6.2 Follow-up
+
+The Java runtime checked upstream `miku-indexgen` through `v1.6.2`.
+Runtime behavior introduced by upstream `v1.6.1` for child-directory batch mode
+already matched this Java repository's `--input-parent-directory` contract.
+Upstream `v1.6.2` added copyable Markdown front matter examples and refreshed
+exclude-glob documentation examples.
+
+Completed items:
+
+- Done: fetched upstream `miku-indexgen` and observed `origin/devel` `daf1e2b` / tags `v1.6.1` and `v1.6.2`.
+- Done: confirmed Java child-directory batch mode already covers upstream `v1.6.1` behavior.
+- Done: added `docs/examples/` Markdown front matter examples from upstream `v1.6.2`.
+- Done: updated version references to `1.6.2`.

@@ -93,6 +93,7 @@ notes:
   - Initial conversion covers parseArgs, parseIncludeExtensions, and printHelp.
   - CLI converts parsed arguments into core IndexgenOptions.
   - `--exclude-glob` is parsed as a repeatable option and normalized before conversion.
+  - `--input-parent-directory` is parsed as the child-directory batch input mode.
 ```
 
 ```text
@@ -116,6 +117,7 @@ notes:
   - JSON output formatting follows upstream `formatIndexJson` so each file entry is emitted as one search-friendly line.
   - Output write status follows upstream `add` / `update` / `none` labels and is exposed through `IndexgenResult.outputMessages`.
   - `excludeGlobs` are applied after extension filtering and stored in generation metadata.
+  - Child-directory batch behavior is exposed through the Java runtime's `inputParentDirectory` option.
 ```
 
 ```text
