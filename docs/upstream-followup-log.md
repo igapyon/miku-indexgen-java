@@ -105,6 +105,10 @@ follow-up:
   - `2026-06-20`: Java runtime now supports repeatable `--exclude-glob` with `*`, `?`, and `**` matching against input-relative POSIX paths.
   - `2026-06-20`: Java generation metadata now stores `excludeGlobs` so `--refresh-index` keeps the same exclusion rules.
   - `2026-06-20`: Java version updated to `1.6.0`.
+  - `2026-06-23`: fetched upstream `miku-indexgen` and followed `origin/devel` through `daf1e2b` / upstream `1.6.2`.
+  - `2026-06-23`: upstream `1.6.1` child-directory batch mode matched the existing Java `--input-parent-directory` runtime contract.
+  - `2026-06-23`: Java docs now include upstream `1.6.2` Markdown front matter examples under `docs/examples/`.
+  - `2026-06-23`: Java version updated to `1.6.2`.
 ```
 
 ```text

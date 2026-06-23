@@ -97,7 +97,7 @@ class MikuIndexgenCliTest {
                 new PrintStream(stderrBuffer, true, "UTF-8"));
 
         assertEquals(0, exitCode);
-        assertEquals("miku-indexgen 1.6.0\n", stdoutBuffer.toString("UTF-8"));
+        assertEquals("miku-indexgen 1.6.2\n", stdoutBuffer.toString("UTF-8"));
         assertEquals("", stderrBuffer.toString("UTF-8"));
     }
 

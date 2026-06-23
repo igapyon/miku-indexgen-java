@@ -98,6 +98,12 @@ Usage rule:
 - `sources`, `created`, and `updated` help judge provenance and freshness
 - long Markdown front matter `description` values are shortened to 256 UTF-16 code units, including the trailing `...`
 
+Copyable Markdown front matter examples are available under `docs/examples/`:
+
+- `docs/examples/markdown-frontmatter-minimal.md`
+- `docs/examples/markdown-frontmatter-distilled.md`
+- `docs/examples/markdown-frontmatter-sources.md`
+
 ## Excluding Files
 
 Use repeatable `--exclude-glob <pattern>` options to remove obvious noise after
